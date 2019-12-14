@@ -63,7 +63,7 @@ bool estimatorKalmanTest(void);
 bool estimatorKalmanTestENSEM(void);
 
 void estimatorKalman(state_t *state, sensorData_t *sensors, control_t *control, const uint32_t tick);
-void estimatorKalmanENSEM(X_t *state, sensorData_t *sensors, commande_t *commande, const uint32_t tick);
+void estimatorKalmanENSEM(state_t *state,X_t *X, sensorData_t *sensors, commande_t *commande, const uint32_t tick);
 
 
 void estimatorKalmanTaskInit();

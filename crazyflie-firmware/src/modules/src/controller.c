@@ -5,7 +5,6 @@
 #include "controller.h"
 #include "controller_pid.h"
 #include "controller_mellinger.h"
-#include "controller_ensem.h"
 
 #define DEFAULT_CONTROLLER ControllerTypeENSEM
 static ControllerType currentController = ControllerTypeENSEM;
@@ -24,7 +23,7 @@ static ControllerFcns controllerFunctions[] = {
   {.init = 0, .test = 0, .update = 0, .name = "None"}, // Any
   {.init = controllerPidInit, .test = controllerPidTest, .update = controllerPid, .update2=0,.name = "PID"},
   {.init = controllerMellingerInit, .test = controllerMellingerTest, .update = controllerMellinger,.update2=0, .name = "Mellinger"},
-  {.init = controllerENSEMInit, .test = controllerENSEMTest, .update=0,.update2 = controllerENSEM, .name = "ENSEM"},
+  {.init = controllerENSEMInit, .test = controllerENSEMTest, .update=0,.update2 = controllerENSEM, .name = "CtrENSEM"},
 
 };
 

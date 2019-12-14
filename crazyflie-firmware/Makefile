@@ -25,7 +25,7 @@ CLOAD_CMDS        ?=
 CLOAD_ARGS        ?=
 PLATFORM          ?= cf2
 LPS_TDMA_ENABLE   ?= 0
-LPS_TDOA_ENABLE   ?= 0
+LPS_TDOA_ENABLE   ?= 1
 LPS_TDOA3_ENABLE  ?= 0
 
 
@@ -37,15 +37,15 @@ CFLAGS += -DCRAZYFLIE_FW
 
 ######### Stabilizer configuration ##########
 ## These are set by the platform (see tools/make/platforms/*.mk), can be overwritten here
-ESTIMATOR          ?= any
-CONTROLLER         ?= Any # one of Any, PID, Mellinger
+ESTIMATOR          ?= kalmanENSEM
+CONTROLLER         ?= ControllerTypeENSEM # one of Any, PID, Mellinger, INDI
 POWER_DISTRIBUTION ?= stock
 
 #OpenOCD conf
 RTOS_DEBUG        ?= 0
 
 LIB = $(CRAZYFLIE_BASE)/src/lib
-FREERTOS = $(CRAZYFLIE_BASE)/src/lib/FreeRTOS
+FREERTOS = $(CRAZYFLIE_BASE)/vendor/FreeRTOS
 
 
 ############### CPU-specific build configuration ################
@@ -96,7 +96,7 @@ VPATH += $(LIB)/vl53l1/core/src
 VPATH += $(PORT)
 PORT_OBJ = port.o
 VPATH +=  $(FREERTOS)/portable/MemMang
-MEMMANG_OBJ = heap_4.o
+MEMMANG_OBJ ?= heap_4.o
 
 VPATH += $(FREERTOS)
 FREERTOS_OBJ = list.o tasks.o queue.o timers.o $(MEMMANG_OBJ)
@@ -168,7 +168,7 @@ PROJ_OBJ += crtp_commander_generic.o crtp_localization_service.o
 PROJ_OBJ += attitude_pid_controller.o sensfusion6.o stabilizer.o
 PROJ_OBJ += position_estimator_altitude.o position_controller_pid.o
 PROJ_OBJ += estimator.o estimator_complementary.o
-PROJ_OBJ += controller.o controller_pid.o controller_mellinger.o
+PROJ_OBJ += controller.o controller_pid.o controller_mellinger.o 
 PROJ_OBJ += power_distribution_$(POWER_DISTRIBUTION).o
 PROJ_OBJ += estimator_kalman.o kalman_core.o kalman_supervisor.o
 
@@ -233,6 +233,7 @@ PROJ_OBJ += exptestRR.o
 PROJ_OBJ += exptestBolt.o
 #PROJ_OBJ += bigquadtest.o
 #PROJ_OBJ += uarttest.o
+#PROJ_OBJ += aidecktest.o
 
 
 # Utilities
@@ -362,7 +363,7 @@ bin/vendor:
 	mkdir -p bin/vendor
 
 libarm_math.a:
-	+$(MAKE) -C $(CRAZYFLIE_BASE)/tools/make/cmsis_dsp/ CRAZYFLIE_BASE=$(abspath $(CRAZYFLIE_BASE)) PROJ_ROOT=$(CURDIR) V=$(V)
+	+$(MAKE) -C $(CRAZYFLIE_BASE)/tools/make/cmsis_dsp/ CRAZYFLIE_BASE=$(abspath $(CRAZYFLIE_BASE)) PROJ_ROOT=$(CURDIR) V=$(V) CROSS_COMPILE=$(CROSS_COMPILE)
 
 clean_version:
 ifeq ($(SHELL),/bin/sh)

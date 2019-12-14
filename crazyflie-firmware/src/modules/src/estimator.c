@@ -155,9 +155,9 @@ bool stateEstimatorTest(void) {
   return estimatorFunctions[currentEstimator].test();
 }
 
-void stateEstimator(state_t *state,X_t *X,commande_t *commande, sensorData_t *sensors, control_t *control, const uint32_t tick) {
+void stateEstimator(state_t *state,X_t *X, sensorData_t *sensors,commande_t *commande ,control_t *control, const uint32_t tick) {
  	if(currentEstimator==kalmanENSEM){
-		estimatorFunctions[current].update2(state,X, sensors, commande, tick);
+		estimatorFunctions[currentEstimator].update2(state,X, sensors, commande, tick);
 	}
 	else{
 	estimatorFunctions[currentEstimator].update(state, sensors, control, tick);

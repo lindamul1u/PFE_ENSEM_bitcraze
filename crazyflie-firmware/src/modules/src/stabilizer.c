@@ -252,7 +252,8 @@ static void stabilizerTask(void* param)
   tick = 1;
 
   DEBUG_PRINT("Ready to fly.\n");
-  X->f=9.81;
+  X.f=9.81;
+  X.dt=0.001;
 
   while(1) {
     // The sensor should unlock at 1kHz
@@ -279,14 +280,14 @@ static void stabilizerTask(void* param)
         controllerType = getControllerType();
       }
 
-      stateEstimator(&state,&X,&commande, &sensorData, &control, tick);
+      stateEstimator(&state,&X, &sensorData, &commande,&control, tick);
       compressState();
 
       commanderGetSetpoint(&setpoint, &state);
       compressSetpoint();
 
       sitAwUpdateSetpoint(&setpoint, &sensorData, &state);
-      controller(&control, &setpoint,&commande,&reff,&X &sensorData, &state, tick);
+      controller(&control, &setpoint,&commande,&reff,&X, &sensorData, &state, tick);
 
 
 

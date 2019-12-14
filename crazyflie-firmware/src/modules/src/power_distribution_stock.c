@@ -36,7 +36,6 @@
 #include "debug.h"
 #include <math.h>
 static bool motorSetEnable = false;
-#define PI 3.14159265358979323846
 static struct {
 	uint32_t m1;
 	uint32_t m2;
@@ -74,44 +73,42 @@ void powerStop()
 	motorsSetRatio(MOTOR_M3, 0);
 	motorsSetRatio(MOTOR_M4, 0);
 }
-void powerDistributionENSEM( commande_t *commande, X_t *X){
+void powerDistributionENSEM(const commande_t *commande, X_t *X){
 
 	//[d4p,d2psi] -> w1 w2 w3 w4 -> pwm
-	float w1=X->w1;
-	float w2=X->w2;
-	float w3=X->w3;
-	float phi=X->phi;
-	float theta=X->theta;
-	float psi=X->psi;
-	float dphi=X->dphi;
-	float dtheta=X->dtheta;
-	float dpsi=X->dpsi;
-	float f=X->f;
-	float df=X->df;
-	float c1=commande->c1;
-	float c2=commande->c2;
-	float c3=commande->c3;
-	float c4=commande->c4;
+	double w1=X->w1;
+	double w2=X->w2;
+	double w3=X->w3;
+	double phi=X->phi;
+	double theta=X->theta;
+	double psi=X->psi;
+	double dphi=X->dphi;
+	double dtheta=X->dtheta;
+	double f=X->f;
+	double df=X->df;
+	double c1=commande->c1;
+	double c2=commande->c2;
+	double c3=commande->c3;
+	double c4=commande->c4;
 
+	double v1=  0.00000737*w2*w3 - (0.00001395*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta))*(c2 + (cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) - 1.0*f*(w1*w1 + w2*w2)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - cos(theta)*sin(psi)*(2.0*df*w2 + f*w1*w3)))/f + (0.00001395*(cos(phi)*sin(psi) - 1.0*cos(psi)*sin(phi)*sin(theta))*(c1 - (cos(phi)*sin(psi) - 1.0*cos(psi)*sin(phi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) + f*(w1*w1 + w2*w2)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - cos(psi)*cos(theta)*(2.0*df*w2 + f*w1*w3)))/f - (0.00001395*cos(theta)*sin(phi)*(c3 + sin(theta)*(2.0*df*w2 + f*w1*w3) + cos(theta)*sin(phi)*(2.0*df*w1 - 1.0*f*w2*w3) + f*cos(phi)*cos(theta)*(w1*w1 + w2*w2)))/f;
+	double v2=(0.00001436*cos(psi)*cos(theta)*(c1 - (cos(phi)*sin(psi) - 1.0*cos(psi)*sin(phi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) + f*(w1*w1 + w2*w2)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - cos(psi)*cos(theta)*(2.0*df*w2 + f*w1*w3)))/f - (0.00001436*sin(theta)*(c3 + sin(theta)*(2.0*df*w2 + f*w1*w3) + cos(theta)*sin(phi)*(2.0*df*w1 - 1.0*f*w2*w3) + f*cos(phi)*cos(theta)*(w1*w1 + w2*w2)))/f - 0.00000778*w1*w3 + (0.00001436*cos(theta)*sin(psi)*(c2 + (cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) - 1.0*f*(w1*w1 + w2*w2)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - cos(theta)*sin(psi)*(2.0*df*w2 + f*w1*w3)))/f;
+	double v3=(0.00000001*(2173.0*c4*f*cos(theta)*cos(theta) + 2173.0*c3*cos(theta)*sin(phi)*sin(theta) - 2173.0*c1*cos(psi)*cos(theta)*cos(theta)*sin(phi) - 2173.0*c2*cos(theta)*cos(theta)*sin(phi)*sin(psi) + 4346.0*df*w2*cos(theta)*sin(phi) - 2173.0*dphi*f*w2*cos(phi)*cos(theta) + 2173.0*dphi*f*w3*cos(theta)*sin(phi) - 2173.0*dtheta*f*w3*cos(phi)*sin(theta) + 41.0*f*w1*w2*cos(phi)*cos(theta) - 2173.0*dtheta*f*w2*sin(phi)*sin(theta) + 2173.0*f*w1*w3*cos(theta)*sin(phi)))/(f*cos(phi)*cos(theta));
+	double v4= (sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta))*(c1 - (cos(phi)*sin(psi) - 1.0*cos(psi)*sin(phi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) + f*(w1*w1 + w2*w2)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - cos(psi)*cos(theta)*(2.0*df*w2 + f*w1*w3)) - 1.0*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta))*(c2 + (cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) - 1.0*f*(w1*w1 + w2*w2)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - cos(theta)*sin(psi)*(2.0*df*w2 + f*w1*w3)) + cos(phi)*cos(theta)*(c3 + sin(theta)*(2.0*df*w2 + f*w1*w3) + cos(theta)*sin(phi)*(2.0*df*w1 - 1.0*f*w2*w3) + f*cos(phi)*cos(theta)*(w1*w1 + w2*w2));
 
-
-	float v1=(4350480122343661*w2*w3)/590295810358705651712 + (1029328319312993*(cos(phi)*sin(psi) - cos(psi)*sin(phi)*sin(theta))*(c1 - (2*df*w1 - f*w2*w3)*(cos(phi)*sin(psi) - cos(psi)*sin(phi)*sin(theta)) + f*(w1^2 + w2^2)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - cos(psi)*cos(theta)*(2*df*w2 + f*w1*w3)))/(73786976294838206464*f) - (1029328319312993*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta))*(c2 + (2*df*w1 - f*w2*w3)*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta)) - f*(w1^2 + w2^2)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - cos(theta)*sin(psi)*(2*df*w2 + f*w1*w3)))/(73786976294838206464*f) - (1029328319312993*cos(theta)*sin(phi)*(c3 + sin(theta)*(2*df*w2 + f*w1*w3) + cos(theta)*sin(phi)*(2*df*w1 - f*w2*w3) + f*cos(phi)*cos(theta)*(w1^2 + w2^2)))/(73786976294838206464*f);
-	float v2=(8476647836751013*cos(psi)*cos(theta)*(c1 - (2*df*w1 - f*w2*w3)*(cos(phi)*sin(psi) - cos(psi)*sin(phi)*sin(theta)) + f*(w1^2 + w2^2)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - cos(psi)*cos(theta)*(2*df*w2 + f*w1*w3)))/(590295810358705651712*f) - (8476647836751013*sin(theta)*(c3 + sin(theta)*(2*df*w2 + f*w1*w3) + cos(theta)*sin(phi)*(2*df*w1 - f*w2*w3) + f*cos(phi)*cos(theta)*(w1^2 + w2^2)))/(590295810358705651712*f) - (2296250702295365*w1*w3)/295147905179352825856 + (8476647836751013*cos(theta)*sin(psi)*(c2 + (2*df*w1 - f*w2*w3)*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta)) - f*(w1^2 + w2^2)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - cos(theta)*sin(psi)*(2*df*w2 + f*w1*w3)))/(590295810358705651712*f);
-	float v3=(242021282247069*w1*w2)/590295810358705651712 + (6413563979547337*cos(theta)*(c4 - w2*((dphi*cos(phi))/cos(theta) + (dtheta*sin(phi)*sin(theta))/cos(theta)^2) + w3*((dphi*sin(phi))/cos(theta) - (dtheta*cos(phi)*sin(theta))/cos(theta)^2)))/(295147905179352825856*cos(phi)) + (6413563979547337*tan(phi)*sin(theta)*(c3 + sin(theta)*(2*df*w2 + f*w1*w3) + cos(theta)*sin(phi)*(2*df*w1 - f*w2*w3) + f*cos(phi)*cos(theta)*(w1^2 + w2^2)))/(295147905179352825856*f) - (6413563979547337*cos(psi)*cos(theta)*tan(phi)*(c1 - (2*df*w1 - f*w2*w3)*(cos(phi)*sin(psi) - cos(psi)*sin(phi)*sin(theta)) + f*(w1^2 + w2^2)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - cos(psi)*cos(theta)*(2*df*w2 + f*w1*w3)))/(295147905179352825856*f) - (6413563979547337*cos(theta)*sin(psi)*tan(phi)*(c2 + (2*df*w1 - f*w2*w3)*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta)) - f*(w1^2 + w2^2)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - cos(theta)*sin(psi)*(2*df*w2 + f*w1*w3)))/(295147905179352825856*f);
-	float v4=(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta))*(c1 - (2*df*w1 - f*w2*w3)*(cos(phi)*sin(psi) - cos(psi)*sin(phi)*sin(theta)) + f*(w1^2 + w2^2)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - cos(psi)*cos(theta)*(2*df*w2 + f*w1*w3)) - (cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta))*(c2 + (2*df*w1 - f*w2*w3)*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta)) - f*(w1^2 + w2^2)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - cos(theta)*sin(psi)*(2*df*w2 + f*w1*w3)) + cos(phi)*cos(theta)*(c3 + sin(theta)*(2*df*w2 + f*w1*w3) + cos(theta)*sin(phi)*(2*df*w1 - f*w2*w3) + f*cos(phi)*cos(theta)*(w1^2 + w2^2));
-	float dt=X->dt;
+	double dt=X->dt;
 
 	X->df=df+dt*v4;
 	X->f=f+dt*df;
 	f=X->f;
-	float V1=(8160249282398746929266688*f)/381778773834299875 - (96191379038360232867659776*v3)/3054230190674399 - (60446290980731458735308800*2^(1/2)*v1)/3054230190674399 - (60446290980731458735308800*2^(1/2)*v2)/3054230190674399;
-	float V2=(8160249282398746929266688*f)/381778773834299875 + (96191379038360232867659776*v3)/3054230190674399 - (60446290980731458735308800*2^(1/2)*v1)/3054230190674399 + (60446290980731458735308800*2^(1/2)*v2)/3054230190674399;
-	float V3=(8160249282398746929266688*f)/381778773834299875 - (96191379038360232867659776*v3)/3054230190674399 + (60446290980731458735308800*2^(1/2)*v1)/3054230190674399 + (60446290980731458735308800*2^(1/2)*v2)/3054230190674399;
-	float V4=(8160249282398746929266688*f)/381778773834299875 + (96191379038360232867659776*v3)/3054230190674399 + (60446290980731458735308800*2^(1/2)*v1)/3054230190674399 - (60446290980731458735308800*2^(1/2)*v2)/3054230190674399;
-	float M1=(60.0f/(2*PI)*sqrt(V1)-4070.3)/0.2685;
-	float M2=(60.0f/(2*PI)*sqrt(V2)-4070.3)/0.2685;
-	float M3=(60.0f/(2*PI)*sqrt(V3)-4070.3)/0.2685;
-	float M4=(60.0f/(2*PI)*sqrt(V4)-4070.3)/0.2685;
+	double V1=21374288.0*f - 2.798871e+10*v1 - 2.798871e+10*v2 - 3.1494476e+10*v3;
+	double V2= 21374288.0*f - 2.798871e+10*v1 + 2.798871e+10*v2 + 3.1494476e+10*v3;
+	double V3=21374288.0*f + 2.798871e+10*v1 + 2.798871e+10*v2 - 3.1494476e+10*v3;
+	double V4=21374288.0*f + 2.798871e+10*v1 - 2.798871e+10*v2 + 3.1494476e+10*v3;
+	double M1=(9.5493*sqrt(V1)-4070.3)/0.2685;
+	double M2=(9.5493*sqrt(V2)-4070.3)/0.2685;
+	double M3=(9.5493*sqrt(V3)-4070.3)/0.2685;
+	double M4=(9.5493*sqrt(V4)-4070.3)/0.2685;
  		motorPower.m1= (uint32_t) M1;
 		motorPower.m2=(uint32_t) M2;
 		motorPower.m3=(uint32_t) M3;
