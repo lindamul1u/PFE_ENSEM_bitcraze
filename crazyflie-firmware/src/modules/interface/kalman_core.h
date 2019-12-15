@@ -92,7 +92,7 @@ typedef struct {
 
   // Indicates that the internal state is corrupt and should be reset
   bool resetEstimation;
-  float dt;
+  double dt;
   float baroReferenceHeight;
 } kalmanCoreData_t;
 
@@ -136,7 +136,7 @@ void kalmanCoreUpdateWithSweepAngles(kalmanCoreData_t *this, sweepAngleMeasureme
  *
  * The filter progresses as:
  *  - Predicting the current state forward */
-void kalmanCorePredict(kalmanCoreData_t* this, float thrust, Axis3f *acc, Axis3f *gyro, float dt, bool quadIsFlying);
+void kalmanCorePredict(kalmanCoreData_t* this, Axis3f *acc, Axis3f *gyro, double d, bool quadIsFlying);
 
 void kalmanCoreAddProcessNoise(kalmanCoreData_t* this, float dt);
 

@@ -303,39 +303,6 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
 
 
 
-static float kp=53.2010;
-static float kdp=74.8919;
-static float kd2p=56.3921;
-static float kd3p=20.0179;
-
-
-static float kpsi=17.0082;
-static float kdpsi=17.9804;
-
-
-void controllerENSEMInit(void)
-{
-
-}
-
-bool controllerENSEMTest(void)
-{
-  return true;
-}
-
-void controllerENSEM(commande_t *commande, reff_t *reff,const X_t *X,const uint32_t tick)
-
-
-{// V=[p^(4)_reff psi(2)_reff]-K[X_tilde-reff]
-
-commande->c1=(reff->d4p.x)-kp*(X->x1 -reff->position.x)-kdp*(X->x4-reff->velocity.x)-kd2p*(X->x7-reff->acceleration.x)-kd3p*(X->x10-reff->jerk.x);
-commande->c2=(reff->d4p.y)-kp*(X->x2-reff->position.y)-kdp*(X->x5-reff->velocity.y)-kd2p*(X->x8-reff->acceleration.y)-kd3p*(X->x11-reff->jerk.y);
-commande->c3=(reff->d4p.z)-kp*(X->x3 -reff->position.z)-kdp*(X->x6-reff->velocity.z)-kd2p*(X->x9-reff->acceleration.z)-kd3p*(X->x12-reff->jerk.z);
-commande->c4=(reff->d2psi)-kpsi*(X->x13 -reff->psi)-kdpsi*(X->x14-reff->dpsi);
-
-
-
-}
 
 
 

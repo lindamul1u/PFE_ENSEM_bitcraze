@@ -58,6 +58,7 @@
 #include "stabilizer_types.h"
 
 void estimatorKalmanInit(void);
+void estimatorKalmanInitENSEM(void);
 
 bool estimatorKalmanTest(void);
 bool estimatorKalmanTestENSEM(void);

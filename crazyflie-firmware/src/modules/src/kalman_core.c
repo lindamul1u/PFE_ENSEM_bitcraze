@@ -646,7 +646,7 @@ void kalmanCoreUpdateWithSweepAngles(kalmanCoreData_t *this, sweepAngleMeasureme
   scalarUpdateForSweep(this, measuredSweepAngleVertical, dz_rot, dx_rot, KC_STATE_Z, angles->stdDevY, &basestation_rotation_matrix, distanceToBs, tick);
 }
 
-void kalmanCorePredict(kalmanCoreData_t* this, , Axis3f *acc, Axis3f *gyro, float dt, bool quadIsFlying)
+void kalmanCorePredict(kalmanCoreData_t* this , Axis3f *acc, Axis3f *gyro, double d, bool quadIsFlying)
 {
   /* Here we discretize (euler forward) and linearise the quadrocopter dynamics in order
    * to push the covariance forward.
@@ -668,6 +668,7 @@ void kalmanCorePredict(kalmanCoreData_t* this, , Axis3f *acc, Axis3f *gyro, floa
    * note that d (attitude error) is zero at the beginning of each iteration,
    * since error information is incorporated into R after each Kalman update.
    */
+	float dt=(float) d;
 
   // The linearized update matrix
   static float A[KC_STATE_DIM][KC_STATE_DIM];

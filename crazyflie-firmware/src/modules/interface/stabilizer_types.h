@@ -155,40 +155,40 @@ typedef struct state_s {
   point_t position;         // m
   velocity_t velocity;      // m/s
   acc_t acc;                // Gs (but acc.z without considering gravity)
-  float dt;
+  double dt;
 } state_t;
 typedef struct X_s{
-	float x1;
-	float x2;
-	float x3;
+	double x1;
+	double x2;
+	double x3;
 
-	float x4;
-	float x5;
-	float x6;
+	double x4;
+	double x5;
+	double x6;
 
-	float x7;
-	float x8;
-	float x9;
+	double x7;
+	double x8;
+	double x9;
 
-	float x10;
-	float x11;
-	float x12;
+	double x10;
+	double x11;
+	double x12;
 
-	float x14;
-	float x13;
+	double x14;
+	double x13;
 
-	float phi;
-	float theta;
-	float psi;
-	float dphi;
-	float dtheta;
-	float dpsi;
-	float w1;
-	float w2;
-	float w3;
-	float df;
-	float f;
-	float dt;
+	double phi;
+	double theta;
+	double psi;
+	double dphi;
+	double dtheta;
+	double dpsi;
+	double w1;
+	double w2;
+	double w3;
+	double df;
+	double f;
+	double dt;
 
 }X_t;
 typedef struct control_s {
@@ -198,10 +198,10 @@ typedef struct control_s {
   float thrust;
 } control_t;
 typedef struct commande_s{
-	float c1;
-	float c2;
-	float c3;
-	float c4;
+	double c1;
+	double c2;
+	double c3;
+	double c4;
 }commande_t;
 typedef enum mode_e {
   modeDisable = 0,
@@ -232,15 +232,30 @@ typedef struct setpoint_s {
   } mode;
 } setpoint_t;
 typedef struct reff_s{
-	uint32_t timestamp;
-	point_t position;
-	velocity_t velocity;
-	acc_t acceleration;
-	jerk_t jerk;
-	d4p_t d4p;
-	float psi;
-	float dpsi;
-	float d2psi;
+	double x1;
+	double x2;
+	double x3;
+
+	double x4;
+	double x5;
+	double x6;
+
+	double x7;
+	double x8;
+	double x9;
+
+	double x10;
+	double x11;
+	double x12;
+
+	double x14;
+	double x13;
+	double dx10;
+	double dx11;
+	double dx12;
+	double dx14;
+
+
 }reff_t;
 
 /** Estimate of position */

@@ -88,7 +88,7 @@ static EstimatorFcns estimatorFunctions[] = {
         .estimatorEnqueueSweepAngles = estimatorKalmanEnqueueSweepAngles,
     },
 	{
-            .init = estimatorKalmanInit,
+            .init = estimatorKalmanInitENSEM,
             .deinit = NOT_IMPLEMENTED,
             .test = estimatorKalmanTest,
 			.update=NOT_IMPLEMENTED,

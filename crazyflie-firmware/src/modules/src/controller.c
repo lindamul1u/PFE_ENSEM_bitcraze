@@ -5,6 +5,7 @@
 #include "controller.h"
 #include "controller_pid.h"
 #include "controller_mellinger.h"
+#include "controller_ensem.h"
 
 #define DEFAULT_CONTROLLER ControllerTypeENSEM
 static ControllerType currentController = ControllerTypeENSEM;
