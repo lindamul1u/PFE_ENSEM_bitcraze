@@ -88,33 +88,40 @@ void powerDistributionENSEM(commande_t *powerENSEM, commande_t *commande, X_t *X
 		double   phi= (double) X->phi;
 		double   theta= (double) X->theta;
 		double   psi= (double) X->psi;
-		double   dphi= (double) X->dphi;
-		double   dtheta= (double) X->dtheta;
-		double f=(double) X->f;
-		double df=(double) X->df;
-		double d2f=(double) X->d2f;
-		double  dt= (double) X->dt;
-
-
-		f=f+dt*df+0.5*dt*dt*d2f;
-		df= df+dt*d2f;
+		//double   dphi= (double) X->dphi;
+		//double   dtheta= (double) X->dtheta;
+		double f= (double)X->f;
+		double df= (double)X->df;
+		//double d2f=(double) X->d2f;
+		double  dt=  (double) X->dt;
 
 
 
-		double v1= 0.00002132*w2*w3 - (0.0000279*df*w1 - 0.00001395*c1*cos(phi)*cos(psi) + 0.00001395*c2*cos(phi)*sin(psi) + 0.00001395*c3*cos(theta)*sin(phi) + 0.00001395*c2*cos(psi)*sin(phi)*sin(theta) + 0.00001395*c1*sin(phi)*sin(psi)*sin(theta))/f;
-		double v2=- (0.00002872*df*w2 + 0.00001436*c3*sin(theta) - 0.00001436*c2*cos(psi)*cos(theta) - 0.00001436*c1*cos(theta)*sin(psi))/f - 0.00002214*w1*w3;
-		double v3=(0.00002173*c4*cos(theta) - 0.00002173*dphi*w2*cos(phi) + 0.00002173*dphi*w3*sin(phi) + 4.1e-7*w1*w2*cos(phi) + 0.00002173*w1*w3*sin(phi) - 0.00002173*dtheta*w2*sin(phi)*tan(theta) - 0.00002173*dtheta*w3*cos(phi)*tan(theta))/(2.0*cos(phi/2)*cos(phi/2) - 1.0) + (0.00004346*df*w2*sin(phi) + 0.00002173*c3*sin(phi)*sin(theta) - 0.00002173*c2*cos(psi)*cos(theta)*sin(phi) - 0.00002173*c1*cos(theta)*sin(phi)*sin(psi))/(f*(2.0*cos(phi/2)*cos(phi/2) - 1.0));
-		double v4=f*w1*w1 + f*w2*w2 + c3*cos(phi)*cos(theta) + c1*cos(psi)*sin(phi) - 1.0*c2*sin(phi)*sin(psi) + c2*cos(phi)*cos(psi)*sin(theta) + c1*cos(phi)*sin(psi)*sin(theta);
-		//double v4= (sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta))*(c1 - (cos(phi)*sin(psi) - 1.0*cos(psi)*sin(phi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) + f*(w1*w1 + w2*w2)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - cos(psi)*cos(theta)*(2.0*df*w2 + f*w1*w3)) - 1.0*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta))*(c2 + (cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) - 1.0*f*(w1*w1 + w2*w2)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - cos(theta)*sin(psi)*(2.0*df*w2 + f*w1*w3)) + cos(phi)*cos(theta)*(c3 + sin(theta)*(2.0*df*w2 + f*w1*w3) + cos(theta)*sin(phi)*(2.0*df*w1 - 1.0*f*w2*w3) + f*cos(phi)*cos(theta)*(w1*w1 + w2*w2));
+
+
+
+
+		double v1=-(1.0e-8*(1395.0*c2 + 2790.0*df*w1 - 2790.0*c2*cos(0.5*phi)*cos(0.5*phi) - 2790.0*c2*cos(0.5*psi)*cos(0.5*psi) + 5580.0*c2*cos(0.5*phi)*cos(0.5*phi)*cos(0.5*psi)*cos(0.5*psi) - 2132.0*f*w2*w3 - 2790.0*c3*cos(0.5*phi)*sin(0.5*phi) + 2790.0*c1*cos(0.5*psi)*sin(0.5*psi) - 5580.0*c1*cos(0.5*phi)*cos(0.5*phi)*cos(0.5*psi)*sin(0.5*psi) + 5580.0*c3*cos(0.5*phi)*cos(0.5*theta)*cos(0.5*theta)*sin(0.5*phi) - 5580.0*c1*cos(0.5*phi)*cos(0.5*theta)*sin(0.5*phi)*sin(0.5*theta) + 11160.0*c1*cos(0.5*phi)*cos(0.5*psi)*cos(0.5*psi)*cos(0.5*theta)*sin(0.5*phi)*sin(0.5*theta) + 11160.0*c2*cos(0.5*phi)*cos(0.5*psi)*cos(0.5*theta)*sin(0.5*phi)*sin(0.5*psi)*sin(0.5*theta)))/f;
+				double v2= - (0.00002872*df*w2 + 0.00001436*c3*sin(theta) - 0.00001436*c1*cos(psi)*cos(theta) - 0.00001436*c2*cos(theta)*sin(psi))/f - 0.00002214*w1*w3;
+				double v3=(0.00004346*df*w2*sin(phi) + 0.00002173*c3*sin(phi)*sin(theta) - 0.00002132*f*w1*w2*cos(phi) + 0.00004346*f*w1*w3*sin(phi))/(f*cos(phi)) + (0.00004346*f*w2*w3*sin(theta) - 0.00004346*f*w2*w2*cos(phi)*sin(phi)*sin(theta) + 0.00004346*f*w3*w3*cos(phi)*sin(phi)*sin(theta) - 0.00008692*f*w2*w3*cos(phi)*cos(phi)*sin(theta))/(f*cos(phi)*cos(theta)) - (cos(theta)*(0.00002173*c1*cos(psi)*sin(phi) - 0.00002173*c4*f + 0.00002173*c2*sin(phi)*sin(psi)))/(f*cos(phi));
+
+
+
+		double v4= f*w1*w1 + f*w2*w2 + c3*cos(phi)*cos(theta) - 1.0*c2*cos(psi)*sin(phi) + c1*sin(phi)*sin(psi) + c1*cos(phi)*cos(psi)*sin(theta) + c2*cos(phi)*sin(psi)*sin(theta);
+
+				//double v4= (sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta))*(c1 - (cos(phi)*sin(psi) - 1.0*cos(psi)*sin(phi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) + f*(w1*w1 + w2*w2)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - cos(psi)*cos(theta)*(2.0*df*w2 + f*w1*w3)) - 1.0*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta))*(c2 + (cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta))*(2.0*df*w1 - 1.0*f*w2*w3) - 1.0*f*(w1*w1 + w2*w2)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - cos(theta)*sin(psi)*(2.0*df*w2 + f*w1*w3)) + cos(phi)*cos(theta)*(c3 + sin(theta)*(2.0*df*w2 + f*w1*w3) + cos(theta)*sin(phi)*(2.0*df*w1 - 1.0*f*w2*w3) + f*cos(phi)*cos(theta)*(w1*w1 + w2*w2));
+
+
+
+		df= df+dt*v4;
+		f=f+dt*df+0.5*dt*dt*v4;
+
 
 
 		//f=X->f;
 		//df=X->df;
 
 
-		X->f=(float) f;
-		X->df=(float) df;
-		X->d2f=(float) v4;
 
 		/*
 	double  V1=2.1e+7*f - 2.8e+10*v1 - 2.8e+10*v2 - 3.1e+10*v3
@@ -131,11 +138,14 @@ void powerDistributionENSEM(commande_t *powerENSEM, commande_t *commande, X_t *X
 		double  M2=(sqrt(V2)-4070.3)/0.2685;
 		double  M3=(sqrt(V3)-4070.3)/0.2685;
 		double  M4=(sqrt(V4)-4070.3)/0.2685;
-		powerENSEM->c1=(float) M1;
-		powerENSEM->c2= (float) M2;
-		powerENSEM->c3= (float) M3;
-		powerENSEM->c4= (float) M4;
+		powerENSEM->c1=  M1;
+		powerENSEM->c2=   M2;
+		powerENSEM->c3=   M3;
+		powerENSEM->c4=   M4;
 
+		X->f=  f;
+		X->df=  df;
+		X->d2f=  v4;
 
 
 	//consolePrintf("f %f \n",(double) X->f);

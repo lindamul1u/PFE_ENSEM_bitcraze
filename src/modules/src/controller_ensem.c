@@ -43,17 +43,14 @@ We added the following:
 
 #include "controller_ensem.h"
 
+ static double kp= 10.0000   ;
+static double kdp=  25.0864 ;
+static double kd2p= 26.4663 ;
+static double kd3p= 12.3666;
 
 
-
-static double kp=49.2151;
-static double kdp=69.3918;
-static double kd2p=52.3827;
-static double kd3p=18.7078;
-
-
-static double kpsi=15.8445;
-static double kdpsi=16.8148;
+static double kpsi=10.0000 ;
+static double kdpsi=  10.9545;
 
 
 void controllerENSEMInit(void)
@@ -71,58 +68,58 @@ void controllerENSEM(commande_t *commande, X_t *reff, X_t *X,const uint32_t tick
 
 {// V=[p^(4)_reff psi(2)_reff]-K[X_tilde-reff]
 
-		double x1= (double) X->x1;
-		double x2= (double) X->x2;
-		double x3= (double) X->x3;
+		double x1=   X->x1;
+		double x2=   X->x2;
+		double x3=   X->x3;
 
-		double x4= (double) X->x4;
-		double x5= (double) X->x5;
-		double x6= (double) X->x6;
+		double x4=   X->x4;
+		double x5=   X->x5;
+		double x6=   X->x6;
 
-		double x7= (double) X->x7;
-		double x8= (double) X->x8;
-		double x9= (double) X->x9;
+		double x7=   X->x7;
+		double x8=   X->x8;
+		double x9=   X->x9;
 
-		double x10= (double) X->x10;
-		double x11= (double) X->x11;
-		double x12= (double) X->x12;
+		double x10=   X->x10;
+		double x11=   X->x11;
+		double x12=   X->x12;
 
-		double x13= (double) X->x13;
-		double x14= (double) X->x14;
+		double x13=   X->x13;
+		double x14=   X->x14;
 
-		double reff1= (double) reff->x1;
-		double reff2= (double) reff->x2;
-		double reff3= (double) reff->x3;
+		double reff1=   reff->x1;
+		double reff2=   reff->x2;
+		double reff3=   reff->x3;
 
-		double reff4= (double) reff->x4;
-		double reff5= (double) reff->x5;
-		double reff6= (double) reff->x6;
+		double reff4=   reff->x4;
+		double reff5=   reff->x5;
+		double reff6=   reff->x6;
 
-		double reff7= (double) reff->x7;
-		double reff8= (double) reff->x8;
-		double reff9= (double) reff->x9;
+		double reff7=   reff->x7;
+		double reff8=   reff->x8;
+		double reff9=   reff->x9;
 
-		double reff10= (double) reff->x10;
-		double reff11= (double) reff->x11;
-		double reff12= (double) reff->x12;
+		double reff10=   reff->x10;
+		double reff11=   reff->x11;
+		double reff12=   reff->x12;
 
-		double reff13= (double) reff->x13;
-		double reff14= (double) reff->x14;
+		double reff13=   reff->x13;
+		double reff14=   reff->x14;
 
-		double reffd4x= (double) reff->d4x;
-		double reffd4y= (double) reff->d4y;
-		double reffd4z= (double) reff->d4z;
-		double reffd2psi= (double) reff->d2psi;
+		double reffd4x=   reff->d4x;
+		double reffd4y=   reff->d4y;
+		double reffd4z=   reff->d4z;
+		double reffd2psi=   reff->d2psi;
 
 
-		double c1=(double) ((reffd4x)-kp*( x1 -reff1)-kdp*( x4-reff4)-kd2p*( x7-reff7)-kd3p*( x10-reff10));
-		double c2=(double) ((reffd4y)-kp*( x2-reff2)-kdp*( x5-reff5)-kd2p*( x8-reff8)-kd3p*( x11-reff11));
-		double c3=(double)((reffd4z)-kp*( x3 -reff3)-kdp*( x6-reff6)-kd2p*( x9-reff9)-kd3p*( x12-reff12));
-		double c4=(double) ((reffd2psi)-kpsi*( x13 -reff13)-kdpsi*( x14-reff14));
-		commande->c1= (float) c1;
-		commande->c2= (float) c2;
-		commande->c3= (float) c3;
-		commande->c4= (float) c4;
+		double c1=  ((reffd4x)-kp*( x1 -reff1)-kdp*( x4-reff4)-kd2p*( x7-reff7)-kd3p*( x10-reff10));
+		double c2=  ((reffd4y)-kp*( x2-reff2)-kdp*( x5-reff5)-kd2p*( x8-reff8)-kd3p*( x11-reff11));
+		double c3= ((reffd4z)-kp*( x3 -reff3)-kdp*( x6-reff6)-kd2p*( x9-reff9)-kd3p*( x12-reff12));
+		double c4=  ((reffd2psi)-kpsi*( x13 -reff13)-kdpsi*( x14-reff14));
+		commande->c1=   c1;
+		commande->c2=   c2;
+		commande->c3=   c3;
+		commande->c4=   c4;
 
 
 

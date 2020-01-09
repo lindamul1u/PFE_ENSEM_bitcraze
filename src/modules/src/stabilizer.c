@@ -68,6 +68,10 @@ static sensorData_t sensorData;
 static state_t state;
 static control_t control;
 static X_t reff;
+static X_t error_state;
+static X_log_t Xlog;
+//static X_log_t Reflog;
+
 static X_t X;
 static commande_t commande;
 static commande_t powerENSEM;
@@ -228,7 +232,7 @@ static void checkEmergencyStopTimeout()
  * responsibility of the different functions to run slower by skipping call
  * (ie. returning without modifying the output structure).
  */
-float t;
+double t;
 static void stabilizerTask(void* param)
 {
 	uint32_t tick;
@@ -249,17 +253,18 @@ static void stabilizerTask(void* param)
 	tick = 1;
 	t=usecTimestamp() / 1e6;
 
-	X.f=(float)9.81;
+	X.f=9.8100;
 	X.dt=1e-2;
-	X.df=(float)0.0;
+	X.df=0.0;
 
 
 	X.currenttime=t;
-	reff.f=(float)9.81;
-	reff.df=(float)0.0;
+	reff.f=9.81000;
+	reff.df=0.0;
 	reff.dt=1e-2;
 	reff.currenttime=t;
 	DEBUG_PRINT("Ready to fly.\n");
+	 trajset(&reff,&Piecetraj);
 
 	while(1) {
 		// The sensor should unlock at 1kHz
@@ -296,9 +301,7 @@ static void stabilizerTask(void* param)
 			//consolePrintf("f %f \n",(double) reff.dt);
 			//consolePrintf("x1 %f x2 %f x3 %f \n",(double) reff.x1,(double)reff.x2,(double)reff.x3);
 
-
 			if(controllerType==ControllerTypeENSEM){
-				trajset(&reff,&Piecetraj);
 				//  memcpy ( &X, &reff, sizeof(reff) );
 			/*	  X.x1=reff.x1;
 				  X.x2=reff.x2;
@@ -309,19 +312,33 @@ static void stabilizerTask(void* param)
 				  X.x9=reff.x9;
 
 				  X.x13=reff.x13;
-*/
+			 */
+				 trajset(&reff,&Piecetraj);
 
-				controller(&control, &setpoint,&commande,&reff,&reff, &sensorData, &state, tick);
+				controller(&control, &setpoint,&commande,&reff,&X, &sensorData, &state, tick);
+
+
+
+				stateEstimator(&reff,&X,&error_state,&commande,&state, &sensorData, &control, tick);
+
+
+			 ExternalizedState();
+
+
+
+
+
+
+
 				//consolePrintf("c1 %f c2 %f c3 %f c4 %f\n",(double) commande.c1,(double) commande.c2,(double) commande.c3,(double) commande.c4);
 
-			stateEstimator(&reff,&X,&commande,&state, &sensorData, &control, tick);
 
 			}
 
 
 
 			else{
-				stateEstimator(&reff,&reff,&commande,&state, &sensorData, &control, tick);
+				stateEstimator(&reff,&reff,&error_state,&commande,&state, &sensorData, &control, tick);
 				compressState();
 
 				commanderGetSetpoint(&setpoint, &state);
@@ -339,7 +356,7 @@ static void stabilizerTask(void* param)
 				powerStop();
 			} else {
 				if(controllerType==ControllerTypeENSEM){
-					powerDistributionENSEM(&powerENSEM,&commande,&reff);
+					 powerDistributionENSEM(&powerENSEM,&commande,&X);
 
 				}
 				else{
@@ -355,7 +372,7 @@ static void stabilizerTask(void* param)
 				usddeckTriggerLogging();
 			}
 		}
-		t=(float) (usecTimestamp() / 1e6);
+		t=(usecTimestamp() / 1e6);
 		X.dt=t-X.currenttime;
 		X.currenttime=t;
 		reff.dt=t-reff.currenttime;
@@ -368,7 +385,31 @@ static void stabilizerTask(void* param)
 
 	}
 }
+void ExternalizedState(){
+	Xlog.x1=(float) X.x1;
+	Xlog.x2=(float) X.x2;
+	Xlog.x3=(float) X.x3;
+	Xlog.x4=(float) X.x4;
+	Xlog.x5=(float) X.x5;
+	Xlog.x6=(float) X.x6;
+	Xlog.x7=(float) X.x7;
+	Xlog.x8=(float) X.x8;
+	Xlog.x9=(float) X.x9;
+	Xlog.x10=(float) X.x10;
+	Xlog.x11=(float) X.x11;
+	Xlog.x12=(float) X.x12;
+	Xlog.x13=(float) X.x13;
+	Xlog.x14=(float) X.x14;
 
+	Xlog.phi=(float) X.phi;
+	Xlog.theta=(float) X.theta;
+	Xlog.psi=(float) X.psi;
+	Xlog.f=(float) X.f;
+
+
+
+
+}
 void stabilizerSetEmergencyStop()
 {
 	emergencyStop = true;
@@ -706,77 +747,37 @@ LOG_GROUP_START(controller)
 LOG_ADD(LOG_INT16, ctr_yaw, &control.yaw)
 LOG_GROUP_STOP(controller)
 
-LOG_GROUP_START(CCom)
-LOG_ADD(LOG_FLOAT, c1, &commande.c1)
-LOG_ADD(LOG_FLOAT, c2, &commande.c2)
 
-LOG_ADD(LOG_FLOAT, c3, &commande.c3)
 
-LOG_ADD(LOG_FLOAT, c4, &commande.c4)
+LOG_GROUP_START(Xlog)
 
-LOG_GROUP_STOP(CCom)
-LOG_GROUP_START(powerENSEM)
-LOG_ADD(LOG_FLOAT, c1, &powerENSEM.c1)
-LOG_ADD(LOG_FLOAT, c2, &powerENSEM.c2)
+LOG_ADD(LOG_FLOAT, x1, &Xlog.x1)
+LOG_ADD(LOG_FLOAT, x2, &Xlog.x2)
+LOG_ADD(LOG_FLOAT, x3, &Xlog.x3)
 
-LOG_ADD(LOG_FLOAT, c3, &powerENSEM.c3)
+LOG_ADD(LOG_FLOAT, x7, &Xlog.x7)
+LOG_ADD(LOG_FLOAT, x8, &Xlog.x8)
+LOG_ADD(LOG_FLOAT, x9, &Xlog.x9)
 
-LOG_ADD(LOG_FLOAT, c4, &powerENSEM.c4)
+LOG_ADD(LOG_FLOAT, x4, &Xlog.x4)
+LOG_ADD(LOG_FLOAT, x5, &Xlog.x5)
+LOG_ADD(LOG_FLOAT, x6, &Xlog.x6)
 
-LOG_GROUP_STOP(powerENSEM)
+LOG_ADD(LOG_FLOAT, x10, &Xlog.x10)
+LOG_ADD(LOG_FLOAT, x11, &Xlog.x11)
+LOG_ADD(LOG_FLOAT, x12, &Xlog.x12)
 
-LOG_GROUP_START(StateENSEM)
-LOG_ADD(LOG_FLOAT, x1, &X.x1)
-LOG_ADD(LOG_FLOAT, x2, &X.x2)
+LOG_ADD(LOG_FLOAT, phi, &Xlog.phi)
+LOG_ADD(LOG_FLOAT, theta, &Xlog.theta)
 
-LOG_ADD(LOG_FLOAT, x3, &X.x3)
-LOG_ADD(LOG_FLOAT, x7, &X.x7)
-LOG_ADD(LOG_FLOAT, x8, &X.x8)
+LOG_ADD(LOG_FLOAT, psi, &Xlog.psi)
 
-LOG_ADD(LOG_FLOAT, x9, &X.x9)
-
-LOG_ADD(LOG_FLOAT, phi, &X.phi)
-LOG_ADD(LOG_FLOAT, theta, &X.theta)
-
-LOG_ADD(LOG_FLOAT, psi, &X.psi)
-
-LOG_ADD(LOG_FLOAT, w1, &X.w1)
-LOG_ADD(LOG_FLOAT, w2, &X.w2)
-LOG_ADD(LOG_FLOAT, w3, &X.w3)
-
-LOG_ADD(LOG_FLOAT, f, &X.f)
-LOG_ADD(LOG_FLOAT, df, &X.df)
-LOG_ADD(LOG_FLOAT, d2f, &X.d2f)
+LOG_ADD(LOG_FLOAT, f, &Xlog.f)
 
 
 
-LOG_GROUP_STOP(StateENSEM)
+LOG_GROUP_STOP(Xlog)
 
-LOG_GROUP_START(reff)
-LOG_ADD(LOG_FLOAT, x1, &reff.x1)
-LOG_ADD(LOG_FLOAT, x2, &reff.x2)
-
-LOG_ADD(LOG_FLOAT, x3, &reff.x3)
-
-LOG_ADD(LOG_FLOAT, phi, &reff.phi)
-LOG_ADD(LOG_FLOAT, theta, &reff.theta)
-
-LOG_ADD(LOG_FLOAT, psi, &reff.psi)
-
-LOG_ADD(LOG_FLOAT, w1, &reff.w1)
-LOG_ADD(LOG_FLOAT, w2, &reff.w2)
-LOG_ADD(LOG_FLOAT, w3, &reff.w3)
-
-LOG_ADD(LOG_FLOAT, f, &reff.f)
-LOG_ADD(LOG_FLOAT, df, &reff.df)
-
-LOG_ADD(LOG_FLOAT, d4x, &reff.d4x)
-LOG_ADD(LOG_FLOAT, d4y, &reff.d4y)
-LOG_ADD(LOG_FLOAT, d4z, &reff.d4z)
-LOG_ADD(LOG_FLOAT, d2psi, &reff.d2psi)
-
-
-LOG_GROUP_STOP(reff)
 
 LOG_GROUP_START(stateEstimate)
 LOG_ADD(LOG_FLOAT, x, &state.position.x)
@@ -802,24 +803,3 @@ LOG_ADD(LOG_FLOAT, qw, &state.attitudeQuaternion.w)
 LOG_GROUP_STOP(stateEstimate)
 
 
-
-
-LOG_GROUP_START(stateEstimateZ)
-LOG_ADD(LOG_INT16, x, &stateCompressed.x)                 // position - mm
-LOG_ADD(LOG_INT16, y, &stateCompressed.y)
-LOG_ADD(LOG_INT16, z, &stateCompressed.z)
-
-LOG_ADD(LOG_INT16, vx, &stateCompressed.vx)               // velocity - mm / sec
-LOG_ADD(LOG_INT16, vy, &stateCompressed.vy)
-LOG_ADD(LOG_INT16, vz, &stateCompressed.vz)
-
-LOG_ADD(LOG_INT16, ax, &stateCompressed.ax)               // acceleration - mm / sec^2
-LOG_ADD(LOG_INT16, ay, &stateCompressed.ay)
-LOG_ADD(LOG_INT16, az, &stateCompressed.az)
-
-LOG_ADD(LOG_UINT32, quat, &stateCompressed.quat)           // compressed quaternion, see quatcompress.h
-
-LOG_ADD(LOG_INT16, rateRoll, &stateCompressed.rateRoll)   // angular velocity - milliradians / sec
-LOG_ADD(LOG_INT16, ratePitch, &stateCompressed.ratePitch)
-LOG_ADD(LOG_INT16, rateYaw, &stateCompressed.rateYaw)
-LOG_GROUP_STOP(stateEstimateZ)

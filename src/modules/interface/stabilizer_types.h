@@ -156,6 +156,9 @@ typedef struct state_s {
   velocity_t velocity;      // m/s
   acc_t acc;                // Gs (but acc.z without considering gravity)
   double dt;
+  float w1;
+  float w2;
+  float w3;
 } state_t;
 
 typedef struct log_X_s{
@@ -164,6 +167,52 @@ typedef struct log_X_s{
 	float x3;
 }log_X_t;
 typedef struct X_s{
+
+	double x1;
+	double x2;
+	double x3;
+
+	double x4;
+	double x5;
+	double x6;
+
+	double x7;
+	double x8;
+	double x9;
+
+	double x10;
+	double x11;
+	double x12;
+
+	double x14;
+	double x13;
+
+	double phi;
+	double theta;
+	double psi;
+	double dphi;
+	double dtheta;
+	double dpsi;
+	double w1;
+	double w2;
+	double w3;
+	double df;
+	double f;
+	double d2f;
+
+	double dphidpsi;
+	double dthetadpsi;
+	double dt;
+	double d4x;
+	double d4y;
+	double d4z;
+	double d2psi;
+	int Morceau_traj;
+ 	double currenttime;
+
+}X_t;
+typedef struct X_log_s{
+
 	float x1;
 	float x2;
 	float x3;
@@ -196,7 +245,8 @@ typedef struct X_s{
 	float f;
 	float d2f;
 
-
+float dphidpsi;
+float dthetadpsi;
 	float dt;
 	float d4x;
 	float d4y;
@@ -205,7 +255,8 @@ typedef struct X_s{
 	int Morceau_traj;
  	float currenttime;
 
-}X_t;
+}X_log_t;
+
 typedef struct ctr_traj_s{
 	float t1;
 }ctr_traj_t;
@@ -216,10 +267,10 @@ typedef struct control_s {
   float thrust;
 } control_t;
 typedef struct commande_s{
-	float c1;
-	float c2;
-	float c3;
-	float c4;
+	double c1;
+	double c2;
+	double c3;
+	double c4;
 }commande_t;
 typedef enum mode_e {
   modeDisable = 0,
