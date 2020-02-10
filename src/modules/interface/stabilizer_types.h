@@ -161,11 +161,7 @@ typedef struct state_s {
   float w3;
 } state_t;
 
-typedef struct log_X_s{
-	float x1;
-	float x2;
-	float x3;
-}log_X_t;
+
 typedef struct X_s{
 
 	double x1;
@@ -208,7 +204,16 @@ typedef struct X_s{
 	double d4z;
 	double d2psi;
 	int Morceau_traj;
+	int isInit;
  	double currenttime;
+
+ 	double accbx;
+ 	double accby;
+ 	double accbz;
+	int start;
+
+
+
 
 }X_t;
 typedef struct X_log_s{
@@ -254,6 +259,8 @@ float dthetadpsi;
 	float d2psi;
 	int Morceau_traj;
  	float currenttime;
+	int start;
+
 
 }X_log_t;
 
@@ -271,12 +278,40 @@ typedef struct commande_s{
 	double c2;
 	double c3;
 	double c4;
+	double w1;
+	double w2;
+	double w3;
+	double w4;
+	double w1bc;
+	double w2bc;
+	double w3bc;
+	double w4bc;
+	double currenttime;
+	int start;
 }commande_t;
+typedef struct Logcommande_s{
+	float c1;
+	float c2;
+	float c3;
+	float c4;
+	float w1;
+	float w2;
+	float w3;
+	float w4;
+	float w1bc;
+	float w2bc;
+	float w3bc;
+	float w4bc;
+	float currenttime;
+	int start;
+
+}Logcommande_t;
 typedef enum mode_e {
   modeDisable = 0,
   modeAbs,
   modeVelocity
 } stab_mode_t;
+
 
 typedef struct setpoint_s {
   uint32_t timestamp;
@@ -288,6 +323,12 @@ typedef struct setpoint_s {
   point_t position;         // m
   velocity_t velocity;      // m/s
   acc_t acceleration;       // m/s^2
+  jerk_t jerk;
+  d4p_t d4p;
+  float psi;
+  float dpsi;
+  float d2psi;
+
   bool velocity_body;       // true if velocity is given in body frame; false if velocity is given in world frame
 
   struct {
@@ -299,8 +340,8 @@ typedef struct setpoint_s {
     stab_mode_t yaw;
     stab_mode_t quat;
   } mode;
+  int TypeTraj;
 } setpoint_t;
-
 
 /** Estimate of position */
 typedef struct estimate_s {

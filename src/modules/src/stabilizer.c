@@ -67,27 +67,192 @@ static setpoint_t setpoint;
 static sensorData_t sensorData;
 static state_t state;
 static control_t control;
-static X_t reff;
-static X_t error_state;
-static X_log_t Xlog;
+static X_t reff;// structure reff
+static X_t ST;// structure Modèle et mesure (vérité terrain)
+
+static X_t error_state;//
+static X_log_t Xlog;//Logging de X
+static X_log_t Errlog;//
+static X_log_t Refflog;//
+static X_log_t STlog;//
+static Logcommande_t powerLog;// Logging de powerENSEM
+static Logcommande_t commandeLog;//
 //static X_log_t Reflog;
 
-static X_t X;
-static commande_t commande;
-static commande_t powerENSEM;
- static StateEstimatorType estimatorType;
+static X_t X;// Structure correspondant à l'estimation d'etat
+
+
+static commande_t commande;//commande V=[d4p;d2psi]-K(X-Xref)
+static commande_t powerENSEM;// [M,f] et [wi_moteurs]
+//pour voir la définition des structures aller voir dans stabilize_type.h
+static StateEstimatorType estimatorType;
 static ControllerType controllerType;
-static int Ninit;
-static ctr_traj_t Piecetraj;
 typedef enum { configureAcc, measureNoiseFloor, measureProp, testBattery, restartBatTest, evaluateResult, testDone } TestState;
 #ifdef RUN_PROP_TEST_AT_STARTUP
 static TestState testState = configureAcc;
 #else
 static TestState testState = testDone;
 #endif
+// Externalized ... => log (voir fin du fichier) Logging des structures à lire depuis python
+void ExternalizedErr();
+void ExternalizedReff();
+void ExternalizedMf();
+void ExternalizedCommande();
+void ExternalizedST();
+void ExternalizedST(){
 
-static STATS_CNT_RATE_DEFINE(stabilizerRate, 500);
- static struct {
+	STlog.x1=(float) ST.x1;
+	STlog.x2=(float) ST.x2;
+	STlog.x3=(float) ST.x3;
+	STlog.x4=(float) ST.x4;
+	STlog.x5=(float) ST.x5;
+	STlog.x6=(float) ST.x6;
+	STlog.x7=(float) ST.x7;
+	STlog.x8=(float) ST.x8;
+	STlog.x9=(float) ST.x9;
+	STlog.x10=(float) ST.x10;
+	STlog.x11=(float) ST.x11;
+	STlog.x12=(float) ST.x12;
+	STlog.x13=(float) ST.x13;
+	STlog.x14=(float) ST.x14;
+	STlog.d4x=(float) ST.d4x;
+	STlog.d4y=(float) ST.d4y;
+	STlog.d4z=(float) ST.d4z;
+	STlog.dpsi=(float) ST.x13;
+	STlog.d2psi=(float) ST.x14;
+
+	STlog.phi=(float) ST.phi;
+	STlog.theta=(float) ST.theta;
+	STlog.psi=(float) ST.psi;
+	STlog.f=(float) ST.f;
+	STlog.currenttime=(float) ST.currenttime;
+	STlog.start=ST.start;
+
+}
+void ExternalizedErr(){
+	Errlog.x1=(float) error_state.x1;
+	Errlog.x2=(float) error_state.x2;
+	Errlog.x3=(float) error_state.x3;
+	Errlog.x4=(float) error_state.x4;
+	Errlog.x5=(float) error_state.x5;
+	Errlog.x6=(float) error_state.x6;
+	Errlog.x7=(float) error_state.x7;
+	Errlog.x8=(float) error_state.x8;
+	Errlog.x9=(float) error_state.x9;
+	Errlog.x10=(float) error_state.x10;
+	Errlog.x11=(float) error_state.x11;
+	Errlog.x12=(float) error_state.x12;
+	Errlog.x13=(float) error_state.x13;
+	Errlog.x14=(float) error_state.x14;
+
+	Errlog.phi=(float) error_state.phi;
+	Errlog.theta=(float) error_state.theta;
+	Errlog.psi=(float) error_state.psi;
+	Errlog.f=(float) error_state.f;
+
+
+
+
+}
+void ExternalizedReff(){
+
+	Refflog.x1=(float) reff.x1;
+	Refflog.x2=(float) reff.x2;
+	Refflog.x3=(float) reff.x3;
+	Refflog.x4=(float) reff.x4;
+	Refflog.x5=(float) reff.x5;
+	Refflog.x6=(float) reff.x6;
+	Refflog.x7=(float) reff.x7;
+	Refflog.x8=(float) reff.x8;
+	Refflog.x9=(float) reff.x9;
+	Refflog.x10=(float) reff.x10;
+	Refflog.x11=(float) reff.x11;
+	Refflog.x12=(float) reff.x12;
+	Refflog.x13=(float) reff.x13;
+	Refflog.x14=(float) reff.x14;
+
+	Refflog.d4x=(float) reff.d4x;
+	Refflog.d4y=(float) reff.d4y;
+	Refflog.d4z=(float) reff.d4z;
+
+	Refflog.dpsi=(float) reff.dpsi;
+	Refflog.d2psi=(float) reff.d2psi;
+
+	Refflog.phi=(float) reff.phi;
+	Refflog.theta=(float) reff.theta;
+	Refflog.psi=(float) reff.psi;
+
+
+
+
+}
+void ExternalizedMf(){
+	powerLog.c1=(float)powerENSEM.c1;
+	powerLog.c2=(float)powerENSEM.c2;
+	powerLog.c3=(float)powerENSEM.c3;
+	powerLog.c4=(float)powerENSEM.c4;
+	powerLog.w1=(float) powerENSEM.w1;
+	powerLog.w2=(float) powerENSEM.w2;
+	powerLog.w3=(float) powerENSEM.w3;
+	powerLog.w4=(float) powerENSEM.w4;
+
+	powerLog.w1bc=(float) powerENSEM.w1bc;
+	powerLog.w2bc=(float) powerENSEM.w2bc;
+	powerLog.w3bc=(float) powerENSEM.w3bc;
+	powerLog.w4bc=(float) powerENSEM.w4bc;
+	powerLog.currenttime=(float) powerENSEM.currenttime;
+	powerLog.start=powerENSEM.start;
+
+}
+void ExternalizedCommande(){
+	commandeLog.c1=(float) commande.c1;
+	commandeLog.c2=(float) commande.c2;
+	commandeLog.c3=(float) commande.c3;
+	commandeLog.c4=(float) commande.c4;
+	commandeLog.currenttime=(float) commande.currenttime;
+	commandeLog.start=commande.start;
+
+}
+void ExternalizedState(){
+	Xlog.x1=(float) X.x1;
+	Xlog.x2=(float) X.x2;
+	Xlog.x3=(float) X.x3;
+	Xlog.x4=(float) X.x4;
+	Xlog.x5=(float) X.x5;
+	Xlog.x6=(float) X.x6;
+	Xlog.x7=(float) X.x7;
+	Xlog.x8=(float) X.x8;
+	Xlog.x9=(float) X.x9;
+	Xlog.x10=(float) X.x10;
+	Xlog.x11=(float) X.x11;
+	Xlog.x12=(float) X.x12;
+	Xlog.x13=(float) X.x13;
+	Xlog.x14=(float) X.x14;
+	Xlog.d4x=(float) X.d4x;
+	Xlog.d4y=(float) X.d4y;
+	Xlog.d4z=(float) X.d4z;
+	Xlog.dpsi=(float) X.x13;
+	Xlog.d2psi=(float) X.x14;
+
+	Xlog.phi=((float) X.phi);
+	Xlog.theta=((float) X.theta);
+	Xlog.psi=((float) X.psi);
+	Xlog.dphi=(float) X.dphi;
+	Xlog.dtheta=(float) X.dtheta;
+	Xlog.dpsi=(float) X.dpsi;
+	Xlog.w1=((float) X.w1);
+	Xlog.w2=((float) X.w2);
+	Xlog.w3=((float) X.w3);
+	Xlog.f=(float) X.f;
+	Xlog.currenttime=(float) X.currenttime;
+	Xlog.start=X.start;
+
+
+
+
+}
+static STATS_CNT_RATE_DEFINE(stabilizerRate, 100);// Boucle stabilizer task tourne à X hz (definir X  à 100, 250 ou 500 hZ)
+static struct {
 	// position - mm
 	int16_t x;
 	int16_t y;
@@ -192,15 +357,15 @@ void stabilizerInit(StateEstimatorType estimator)
 		return;
 
 	sensorsInit();
-	stateEstimatorInit(kalmanENSEMEstimator);
-	controllerInit(ControllerTypeENSEM);
+	stateEstimatorInit(kalmanEstimator);//initialisation avec le kalman Bitcraze
+	controllerInit(ControllerTypePID);//initialisation avec le PID
 	powerDistributionInit();
 	sitAwInit();
 	estimatorType = getStateEstimator();
 	controllerType = getControllerType();
 
 	xTaskCreate(stabilizerTask, STABILIZER_TASK_NAME,
-			STABILIZER_TASK_STACKSIZE, NULL, STABILIZER_TASK_PRI, NULL);
+			STABILIZER_TASK_STACKSIZE, NULL, STABILIZER_TASK_PRI, NULL);// Task = "thread "
 
 	isInit = true;
 }
@@ -232,7 +397,116 @@ static void checkEmergencyStopTimeout()
  * responsibility of the different functions to run slower by skipping call
  * (ie. returning without modifying the output structure).
  */
-double t;
+
+void dynamique(commande_t *power,X_t *X,double dt);// Hardware in the loop : Permet de tester la commande plate sur notre modele
+void dynamique(commande_t *power,X_t *X,double dt){
+	double x1=   X->x1;
+	double x2=   X->x2;
+	double x3=   X->x3;
+
+	double x4=   X->x4;
+	double x5=   X->x5;
+	double x6=   X->x6;
+
+	double v1=power->c1;
+	double v2=power->c2;
+	double v3=power->c3;
+	double f=power->c4;
+	double phi=X->phi;
+	double theta=X->theta;
+	double psi=X->psi;
+	double w1=X->w1;
+	double w2=X->w2;
+	double w3=X->w3;
+
+
+	double j11=1.0e-04 *0.1395;
+	double j22= 1.0e-04 *0.1436;
+	double  j33=1.0e-04 *0.2173;
+
+	double dw1=(v1 + j22*w2*w3 - j33*w2*w3)/j11;
+	double dw2=(v2 - j11*w1*w3 + j33*w1*w3)/j22;
+	double dw3=(v3 + j11*w1*w2 - j22*w1*w2)/j33;
+
+
+	w1 =w1+dt*dw1;
+	w2=w2+dt*dw2;
+	w3=w3+dt*dw3;
+
+
+
+
+
+	double dphi=w1 + w3*cos(phi)*tan(theta) + w2*sin(phi)*tan(theta);
+	double dtheta= w2*cos(phi) - w3*sin(phi);
+	double dpsi=(w3*cos(phi))/cos(theta) + (w2*sin(phi))/cos(theta);
+
+
+	phi =phi + dt*dphi;
+
+
+	theta =theta + dt*dtheta;
+
+
+	psi =psi + dt*dpsi;
+
+	double x7= f*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta));
+	double x8=-f*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta));
+	double x9=f*cos(phi)*cos(theta) - 9.81;
+	double accx= f*cos(psi)*cos(theta)*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - sin(theta)*(f*cos(phi)*cos(theta) - 9.81) - f*cos(theta)*sin(psi)*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta));
+	double accy=cos(theta)*sin(phi)*(f*cos(phi)*cos(theta) - 9.81) - f*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta))*(cos(phi)*sin(psi) - cos(psi)*sin(phi)*sin(theta)) - f*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta))*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta));
+	double accz=f*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta))*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) + f*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta))*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) + cos(phi)*cos(theta)*(f*cos(phi)*cos(theta) - 9.81);
+	/*double x7=f*(sin(phi + dt*(w1 + w3*cos(phi)*tan(theta) + w2*sin(phi)*tan(theta)))*sin(psi + dt*((w3*cos(phi))/cos(theta) + (w2*sin(phi))/cos(theta))) + cos(phi + dt*(w1 + w3*cos(phi)*tan(theta) + w2*sin(phi)*tan(theta)))*cos(psi + dt*((w3*cos(phi))/cos(theta) + (w2*sin(phi))/cos(theta)))*sin(theta + dt*(w2*cos(phi) - w3*sin(phi))));
+	 double x8= -f*(sin(phi + dt*(w1 + w3*cos(phi)*tan(theta) + w2*sin(phi)*tan(theta)))*cos(psi + dt*((w3*cos(phi))/cos(theta) + (w2*sin(phi))/cos(theta))) - cos(phi + dt*(w1 + w3*cos(phi)*tan(theta) + w2*sin(phi)*tan(theta)))*sin(psi + dt*((w3*cos(phi))/cos(theta) + (w2*sin(phi))/cos(theta)))*sin(theta + dt*(w2*cos(phi) - w3*sin(phi))));
+	 double x9=f*cos(phi + dt*(w1 + w3*cos(phi)*tan(theta) + w2*sin(phi)*tan(theta)))*cos(theta + dt*(w2*cos(phi) - w3*sin(phi))) - 9.81;
+
+
+	     double accx=x7*cos(psi)*cos(theta) - x9*sin(theta) + x8*cos(theta)*sin(psi);
+		double accy=x8*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta)) - x7*(cos(phi)*sin(psi) - cos(psi)*sin(phi)*sin(theta)) + x9*cos(theta)*sin(phi);
+		double accz=x7*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - x8*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) + x9*cos(phi)*cos(theta);
+	 */
+
+
+	x6=x6+dt*x9;
+	x5=x5+dt*x8;
+	x4=x4+dt*x7;
+	x3=x3+dt*x6+0.5*dt*dt*x9;
+	x2=x2+dt*x5+0.5*dt*dt*x8;
+	x1=x1+dt*x4+0.5*dt*dt*x7;
+
+
+	(X->x1)=   x1;
+	(X->x2)=   x2;
+	(X->x3)=   x3;
+
+	(X->x4)=   x4;
+	(X->x5)=   x5;
+	(X->x6)=   x6;
+
+	(X->x7)=   x7;
+	(X->x8)=   x8;
+	(X->x9)=   x9;
+
+	(X->phi)=   phi;
+	(X->theta)=   theta;
+	(X->psi)=   psi;
+	//	(X->x13)=   psi;
+
+	(X->w1)=   w1;
+	(X->w2)=   w2;
+	(X->w3)=   w3;
+	X->accbx=accx;
+	X->accby=accy;
+	X->accbz=accz;
+	X->start=1;
+
+
+
+
+}
+double t;// temps
+
+
 static void stabilizerTask(void* param)
 {
 	uint32_t tick;
@@ -252,29 +526,30 @@ static void stabilizerTask(void* param)
 	// Initialize tick to something else then 0
 	tick = 1;
 	t=usecTimestamp() / 1e6;
-
-	X.f=9.8100;
-	X.dt=1e-2;
+// init attribut
+	X.f=9.81;
+	X.dt=0.0;
 	X.df=0.0;
+	ST.f=9.81;
+	ST.psi=0;
+	X.x1=0.0;
+	X.x2=0.0;
 
 
 	X.currenttime=t;
-	reff.f=9.81000;
-	reff.df=0.0;
-	reff.dt=1e-2;
+
+	reff.dt=0.0;
+
+	Xlog.f=9.81;
 	reff.currenttime=t;
 	DEBUG_PRINT("Ready to fly.\n");
-	 trajset(&reff,&Piecetraj);
+	// trajset(&reff,&X,&Piecetraj);
 
 	while(1) {
 		// The sensor should unlock at 1kHz
- 		sensorsWaitDataReady();
+		sensorsWaitDataReady();
 
- 		if(Ninit==0){
- 			float time=usecTimestamp() / 1e6;
- 			Piecetraj.t1=time;
- 			Ninit=Ninit+1;
- 		}
+
 		if (startPropTest != false) {
 			// TODO: What happens with estimator when we run tests after startup?
 			testState = configureAcc;
@@ -285,84 +560,245 @@ static void stabilizerTask(void* param)
 			sensorsAcquire(&sensorData, tick);
 			testProps(&sensorData);
 		} else {
-			/* // allow to update estimator dynamically
-      if (getStateEstimator() != estimatorType) {
-        stateEstimatorSwitchTo(estimatorType);
-        estimatorType = getStateEstimator();
-      }
-      // allow to update controller dynamically
-      if (getControllerType() != controllerType) {
-        controllerInit(controllerType);
-        controllerType = getControllerType();
 
-      }*/
-
-
-			//consolePrintf("f %f \n",(double) reff.dt);
-			//consolePrintf("x1 %f x2 %f x3 %f \n",(double) reff.x1,(double)reff.x2,(double)reff.x3);
-
-			if(controllerType==ControllerTypeENSEM){
-				//  memcpy ( &X, &reff, sizeof(reff) );
-			/*	  X.x1=reff.x1;
-				  X.x2=reff.x2;
-				  X.x3=reff.x3;
-
-				  X.x7=reff.x7;
-				  X.x8=reff.x8;
-				  X.x9=reff.x9;
-
-				  X.x13=reff.x13;
-			 */
-				 trajset(&reff,&Piecetraj);
-
-				controller(&control, &setpoint,&commande,&reff,&X, &sensorData, &state, tick);
-
-
-
-				stateEstimator(&reff,&X,&error_state,&commande,&state, &sensorData, &control, tick);
-
-
-			 ExternalizedState();
-
-
-
-
-
-
-
-				//consolePrintf("c1 %f c2 %f c3 %f c4 %f\n",(double) commande.c1,(double) commande.c2,(double) commande.c3,(double) commande.c4);
-
-
-			}
-
-
-
-			else{
-				stateEstimator(&reff,&reff,&error_state,&commande,&state, &sensorData, &control, tick);
-				compressState();
-
+			if(controllerType==ControllerTypeENSEM && estimatorType==kalmanENSEMEstimator){// Si on utilise le controleur/Estimateur de l'ensem alors ..
+				stateEstimator(kalmanENSEMEstimator,&reff,&X,&error_state,&ST,&commande,&state, &sensorData, &control, tick);
+				//trajset(&reff,&state0,&X,toffset);
 				commanderGetSetpoint(&setpoint, &state);
+				reff.x1=(double)setpoint.position.x;
+				reff.x2=(double)setpoint.position.y;
+				reff.x3=(double)setpoint.position.z;
+				reff.x4= (double)setpoint.velocity.x;
+				reff.x5= (double)setpoint.velocity.y;
+				reff.x6= (double)setpoint.velocity.z;
+				reff.x7= (double)setpoint.acceleration.x;
+				reff.x8=  (double)setpoint.acceleration.y;
+				reff.x9=  (double)setpoint.acceleration.z;
+				reff.x10= (double)setpoint.jerk.x;
+				reff.x11= (double)setpoint.jerk.y;
+				reff.x12= (double)setpoint.jerk.z;
+				reff.x13= (double)setpoint.psi;
+				reff.x14= (double)setpoint.dpsi;
+				reff.d4x=(double) setpoint.d4p.x;
+				reff.d4y=(double) setpoint.d4p.y;
+				reff.d4z=(double) setpoint.d4p.z;
+				reff.d2psi=(double) setpoint.d2psi;
+				reff.dpsi=(double) setpoint.dpsi;
+				reff.psi=(double) setpoint.psi;
+				//sitAwUpdateSetpoint(&setpoint, &sensorData, &state);
+
+
+				if(X.isInit){// X is Init est mis à jours en modifiant le parametre Stabiliser.isInit depuis python (relier à la variable isInit de X)
+					controller(ControllerTypeENSEM,&control, &setpoint,&commande,&reff,&X, &sensorData, &state, tick);
+					controller(ControllerTypePID,&control, &setpoint,&commande,&reff,&X, &sensorData, &state, tick);
+					ST.x1=state.position.x;
+					ST.x2=state.position.y;
+					ST.x3=state.position.z;
+					ST.x4=state.velocity.x;
+					ST.x5=state.velocity.y;
+					ST.x6=state.velocity.z;
+					ST.x7=(state.acc.x);
+					ST.x8=(state.acc.y);
+					ST.x9=(state.acc.z);
+/*ControllerTypeMellinger
+					ST.x1=state.position.x;
+					ST.x2=state.position.y;
+					ST.x3=state.position.z;
+					ST.x4=state.velocity.x;
+					ST.x5=state.velocity.y;
+					ST.x6=state.velocity.z;
+					ST.x7=(state.acc.x)*9.81f;
+					ST.x8=(state.acc.y)*9.81f;
+					ST.x9=(state.acc.z)*9.81f;*/
+/*
+					X.w1=(sensorData.gyro.x* 0.0175f);
+						X.w2=(sensorData.gyro.y* 0.0175f);
+						X.w3=(sensorData.gyro.z* 0.0175f);*/
+				}
+				else{
+
+
+
+					ST.x1=state.position.x;
+					ST.x2=state.position.y;
+					ST.x3=state.position.z;
+					ST.x4=state.velocity.x;
+					ST.x5=state.velocity.y;
+					ST.x6=state.velocity.z;
+					ST.x7=(state.acc.x)*9.81f;
+					ST.x8=(state.acc.y)*9.81f;
+					ST.x9=(state.acc.z)*9.81f;
+
+
+					commande.c1=0;
+					commande.c2=0;
+					commande.c3=0;
+					commande.c4=0;
+					commande.start=0;
+					X.x4=0.0;
+					X.x5=0.0;
+					X.x6=0.0;
+					X.x7=0.0;
+					X.x8=0.0;
+					X.x9=0.0;
+					X.x10=0.0;
+					X.x11=0.0;
+					X.x12=0.0;
+					X.x13=0.0;
+					X.x14=0.0;
+					X.phi=0.0;
+					X.theta=0.0;
+					X.psi=0.0;
+					X.dphi=0.0;
+					X.dtheta=0.0;
+					X.dpsi=0.0;
+					X.w1=0.0;
+					X.w2=0.0;
+					X.w3=0.0;
+					/*
+					X.w1=(sensorData.gyro.x* 0.0175f);
+						X.w2=(sensorData.gyro.y* 0.0175f);
+						X.w3=(sensorData.gyro.z* 0.0175f);
+					*/
+
+					commande.start=0;
+					powerENSEM.start=0;
+					powerENSEM.c3=0.0;
+					powerENSEM.c2=0.0;
+					powerENSEM.c1=0.0;
+					powerENSEM.c4=9.81;
+
+
+
+					reff.currenttime=0.0;
+					reff.Morceau_traj=0;
+					reff.isInit=0;
+
+					reff.x1=(double)setpoint.position.x;
+					reff.x2=(double)setpoint.position.y;
+					reff.x3=(double)setpoint.position.z;
+					reff.x4= (double)setpoint.velocity.x;
+					reff.x5= (double)setpoint.velocity.y;
+					reff.x6= (double)setpoint.velocity.z;
+					reff.x7= (double)setpoint.acceleration.x;
+					reff.x8=  (double)setpoint.acceleration.y;
+					reff.x9=  (double)setpoint.acceleration.z;
+					reff.x10= (double)setpoint.jerk.x;
+					reff.x11= (double)setpoint.jerk.y;
+					reff.x12= (double)setpoint.jerk.z;
+					reff.x13= (double)setpoint.psi;
+					reff.x14= (double)setpoint.dpsi;
+					reff.dpsi=(double) setpoint.dpsi;
+					reff.psi=(double) setpoint.psi;
+
+
+					X.f=9.81;
+					X.df=0.0;
+					ST.f=9.81;
+					ST.df=0.0;
+
+					controller(ControllerTypePID,&control, &setpoint,&commande,&reff,&X, &sensorData, &state, tick);
+				}
+				//consolePrintf("c1 %f c2 %f c3 %f c4 %f\n",(double) commande.c1,(double) commande.c2,(double) commande.c3,(double) commande.c4);
+			}
+			else{
+				stateEstimator(kalmanEstimator,&reff,&X,&error_state,&ST,&commande,&state, &sensorData, &control, tick);
+				compressState();
+				commanderGetSetpoint(&setpoint, &state);
+
+				// inititialisation : decolage avec le pid dX/dt=0 et V=0 df=0
+				commande.c1=0;
+				commande.c2=0;
+				commande.c3=0;
+				commande.c4=0;
+				X.x1=0.0;
+				X.x2=0.0;
+				X.x3=0.0;
+				X.x4=0.0;
+				X.x5=0.0;
+				X.x6=0.0;
+				X.x7=0.0;
+				X.x8=0.0;
+				X.x9=0.0;
+				X.x10=0.0;
+				X.x11=0.0;
+				X.x12=0.0;
+				X.x13=0.0;
+				X.x14=0.0;
+				X.phi=0.0;
+				X.theta=0.0;
+				X.psi=0.0;
+				X.dphi=0.0;
+				X.dtheta=0.0;
+				X.dpsi=0.0;
+				X.w1=0.0;
+				X.w2=0.0;
+				X.w3=0.0;
+				X.start=0;
+				commande.start=0;
+				powerENSEM.start=0;
+				powerENSEM.c3=0.0;
+				powerENSEM.c2=0.0;
+				powerENSEM.c1=0.0;
+				powerENSEM.c4=9.81;
+				X.df=0.0;
+				ST.df=0.0;
+				X.f=9.81;
+				ST.f=9.81;
+
+				reff.currenttime=0.0;
+				reff.Morceau_traj=0;
+				reff.isInit=0;
+
+				reff.x1=(double)setpoint.position.x;
+				reff.x2=(double)setpoint.position.y;
+				reff.x3=(double)setpoint.position.z;
+				reff.x4= (double)setpoint.velocity.x;
+				reff.x5= (double)setpoint.velocity.y;
+				reff.x6= (double)setpoint.velocity.z;
+				reff.x7= (double)setpoint.acceleration.x;
+				reff.x8=  (double)setpoint.acceleration.y;
+				reff.x9=  (double)setpoint.acceleration.z;
+				reff.x10= (double)setpoint.jerk.x;
+				reff.x11= (double)setpoint.jerk.y;
+				reff.x12= (double)setpoint.jerk.z;
+				reff.x13= (double)setpoint.psi;
+				reff.x14= (double)setpoint.dpsi;
+				reff.dpsi=(double) setpoint.dpsi;
+				reff.psi=(double) setpoint.psi;
 				compressSetpoint();
-
 				sitAwUpdateSetpoint(&setpoint, &sensorData, &state);
-
-				controller(&control, &setpoint,&commande,&reff,&reff, &sensorData, &state, tick);
+				controller(ControllerTypePID,&control, &setpoint,&commande,&reff,&X, &sensorData, &state, tick);
 			}
 			//consolePrintf("f %f  \n",(double) X.f);
-
 			checkEmergencyStopTimeout();
-
 			if (emergencyStop) {
 				powerStop();
 			} else {
-				if(controllerType==ControllerTypeENSEM){
-					 powerDistributionENSEM(&powerENSEM,&commande,&X);
+
+				if(controllerType==ControllerTypeENSEM && estimatorType==kalmanENSEMEstimator){
+					//powerDistribution(&control,&powerLog);
+					if(X.isInit){
+						//powerDistribution(&control,&powerENSEM);
+
+						powerDistributionENSEM(&powerENSEM,&commande,&X);
+
+						//dynamique(&powerENSEM,&ST,X.dt);
+					}
+					else{
+						powerDistribution(&control,&powerENSEM);
+					}
 
 				}
 				else{
-					powerDistribution(&control);
+					powerDistribution(&control,&powerENSEM);
 				}
-
+				ExternalizedST();
+				ExternalizedMf();
+				ExternalizedCommande();
+				ExternalizedState();
+				ExternalizedErr();
+				ExternalizedReff();
 			}
 
 			// Log data to uSD card if configured
@@ -377,6 +813,9 @@ static void stabilizerTask(void* param)
 		X.currenttime=t;
 		reff.dt=t-reff.currenttime;
 		reff.currenttime=t;
+		ST.currenttime=t;
+		powerENSEM.currenttime=t;
+		commande.currenttime=t;
 		calcSensorToOutputLatency(&sensorData);
 		tick++;
 		STATS_CNT_RATE_EVENT(&stabilizerRate);
@@ -385,31 +824,7 @@ static void stabilizerTask(void* param)
 
 	}
 }
-void ExternalizedState(){
-	Xlog.x1=(float) X.x1;
-	Xlog.x2=(float) X.x2;
-	Xlog.x3=(float) X.x3;
-	Xlog.x4=(float) X.x4;
-	Xlog.x5=(float) X.x5;
-	Xlog.x6=(float) X.x6;
-	Xlog.x7=(float) X.x7;
-	Xlog.x8=(float) X.x8;
-	Xlog.x9=(float) X.x9;
-	Xlog.x10=(float) X.x10;
-	Xlog.x11=(float) X.x11;
-	Xlog.x12=(float) X.x12;
-	Xlog.x13=(float) X.x13;
-	Xlog.x14=(float) X.x14;
 
-	Xlog.phi=(float) X.phi;
-	Xlog.theta=(float) X.theta;
-	Xlog.psi=(float) X.psi;
-	Xlog.f=(float) X.f;
-
-
-
-
-}
 void stabilizerSetEmergencyStop()
 {
 	emergencyStop = true;
@@ -617,19 +1032,19 @@ static void testProps(sensorData_t *sensors)
 			}
 		}
 #ifdef PLAY_STARTUP_MELODY_ON_MOTORS
-if (nrFailedTests == 0)
-{
-	for (int m = 0; m < NBR_OF_MOTORS; m++)
-	{
-		motorsBeep(m, true, testsound[m], (uint16_t)(MOTORS_TIM_BEEP_CLK_FREQ / A4)/ 20);
-		vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));
-		motorsBeep(m, false, 0, 0);
-		vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));
-	}
-}
+		if (nrFailedTests == 0)
+		{
+			for (int m = 0; m < NBR_OF_MOTORS; m++)
+			{
+				motorsBeep(m, true, testsound[m], (uint16_t)(MOTORS_TIM_BEEP_CLK_FREQ / A4)/ 20);
+				vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));
+				motorsBeep(m, false, 0, 0);
+				vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));
+			}
+		}
 #endif
-motorTestCount++;
-testState = testDone;
+		motorTestCount++;
+		testState = testDone;
 	}
 }
 PARAM_GROUP_START(health)
@@ -641,6 +1056,7 @@ PARAM_GROUP_START(stabilizer)
 PARAM_ADD(PARAM_UINT8, estimator, &estimatorType)
 PARAM_ADD(PARAM_UINT8, controller, &controllerType)
 PARAM_ADD(PARAM_UINT8, stop, &emergencyStop)
+PARAM_ADD(PARAM_UINT8, isInit, &X.isInit)
 PARAM_GROUP_STOP(stabilizer)
 
 LOG_GROUP_START(health)
@@ -748,9 +1164,125 @@ LOG_ADD(LOG_INT16, ctr_yaw, &control.yaw)
 LOG_GROUP_STOP(controller)
 
 
+LOG_GROUP_START(Commandelog)
+
+LOG_ADD(LOG_FLOAT, c1, &commandeLog.c1)
+LOG_ADD(LOG_FLOAT, c2, &commandeLog.c2)
+LOG_ADD(LOG_FLOAT, c3, &commandeLog.c3)
+STATS_CNT_RATE_LOG_ADD(rtStab, &stabilizerRate)
+
+LOG_ADD(LOG_FLOAT, c4, &commandeLog.c4)
+LOG_ADD(LOG_FLOAT, tc, &commandeLog.currenttime)
+LOG_ADD(LOG_INT16, startc, &commandeLog.start)
+
+
+
+
+LOG_GROUP_STOP(Commandelog)
+LOG_GROUP_START(Powerlog)
+
+LOG_ADD(LOG_FLOAT, m1, &powerLog.c1)
+LOG_ADD(LOG_FLOAT, m2, &powerLog.c2)
+LOG_ADD(LOG_FLOAT, m3, &powerLog.c3)
+
+LOG_ADD(LOG_FLOAT, f, &powerLog.c4)
+STATS_CNT_RATE_LOG_ADD(rtStab, &stabilizerRate)
+
+LOG_ADD(LOG_FLOAT, w1, &powerLog.w1)
+LOG_ADD(LOG_FLOAT, w2, &powerLog.w2)
+LOG_ADD(LOG_FLOAT, w3, &powerLog.w3)
+
+LOG_ADD(LOG_FLOAT, w4, &powerLog.w4)
+LOG_ADD(LOG_FLOAT, w1bcbc, &powerLog.w1bc)
+LOG_ADD(LOG_FLOAT, w2bc, &powerLog.w2bc)
+LOG_ADD(LOG_FLOAT, w3bc, &powerLog.w3bc)
+
+LOG_ADD(LOG_FLOAT, w4bc, &powerLog.w4bc)
+LOG_ADD(LOG_FLOAT, tp, &powerLog.currenttime)
+LOG_ADD(LOG_INT16, startp, &powerLog.start)
+
+LOG_GROUP_STOP(Powerlog)
+
+LOG_GROUP_START(Refflog)
+STATS_CNT_RATE_LOG_ADD(rtStab, &stabilizerRate)
+
+LOG_ADD(LOG_FLOAT, x1, &Refflog.x1)
+LOG_ADD(LOG_FLOAT, x2, &Refflog.x2)
+LOG_ADD(LOG_FLOAT, x3, &Refflog.x3)
+
+LOG_ADD(LOG_FLOAT, x7, &Refflog.x7)
+LOG_ADD(LOG_FLOAT, x8, &Refflog.x8)
+LOG_ADD(LOG_FLOAT, x9, &Refflog.x9)
+
+LOG_ADD(LOG_FLOAT, x4, &Refflog.x4)
+LOG_ADD(LOG_FLOAT, x5, &Refflog.x5)
+LOG_ADD(LOG_FLOAT, x6, &Refflog.x6)
+
+LOG_ADD(LOG_FLOAT, x10, &Refflog.x10)
+LOG_ADD(LOG_FLOAT, x11, &Refflog.x11)
+LOG_ADD(LOG_FLOAT, x12, &Refflog.x12)
+
+LOG_ADD(LOG_FLOAT, d4x, &Refflog.d4x)
+LOG_ADD(LOG_FLOAT, d4y, &Refflog.d4y)
+LOG_ADD(LOG_FLOAT, d4z, &Refflog.d4z)
+
+LOG_ADD(LOG_FLOAT, dpsi, &Refflog.dpsi)
+LOG_ADD(LOG_FLOAT, d2psi, &Refflog.d2psi)
+
+
+
+LOG_ADD(LOG_FLOAT, phi, &Refflog.phi)
+LOG_ADD(LOG_FLOAT, theta, &Refflog.theta)
+
+LOG_ADD(LOG_FLOAT, psi, &Refflog.psi)
+
+
+LOG_GROUP_STOP(Refflog)
+
+
+LOG_GROUP_START(STlog)
+
+STATS_CNT_RATE_LOG_ADD(rtStab, &stabilizerRate)
+LOG_ADD(LOG_FLOAT, x1, &STlog.x1)
+LOG_ADD(LOG_FLOAT, x2, &STlog.x2)
+LOG_ADD(LOG_FLOAT, x3, &STlog.x3)
+
+LOG_ADD(LOG_FLOAT, x7, &STlog.x7)
+LOG_ADD(LOG_FLOAT, x8, &STlog.x8)
+LOG_ADD(LOG_FLOAT, x9, &STlog.x9)
+
+LOG_ADD(LOG_FLOAT, x4, &STlog.x4)
+LOG_ADD(LOG_FLOAT, x5, &STlog.x5)
+LOG_ADD(LOG_FLOAT, x6, &STlog.x6)
+
+LOG_ADD(LOG_FLOAT, x10, &STlog.x10)
+LOG_ADD(LOG_FLOAT, x11, &STlog.x11)
+LOG_ADD(LOG_FLOAT, x12, &STlog.x12)
+
+LOG_ADD(LOG_FLOAT, d4x, &STlog.d4x)
+LOG_ADD(LOG_FLOAT, d4y, &STlog.d4y)
+LOG_ADD(LOG_FLOAT, d4z, &STlog.d4z)
+
+LOG_ADD(LOG_FLOAT, dpsi, &STlog.dpsi)
+LOG_ADD(LOG_FLOAT, d2psi, &STlog.d2psi)
+
+
+
+LOG_ADD(LOG_FLOAT, phi, &STlog.phi)
+LOG_ADD(LOG_FLOAT, theta, &STlog.theta)
+
+LOG_ADD(LOG_FLOAT, psi, &STlog.psi)
+LOG_ADD(LOG_FLOAT,f,&STlog.f)
+LOG_ADD(LOG_FLOAT,t,&STlog.currenttime)
+LOG_ADD(LOG_INT16,starte,&STlog.start)
+
+
+
+LOG_GROUP_STOP(STlog)
+
 
 LOG_GROUP_START(Xlog)
-
+STATS_CNT_RATE_LOG_ADD(rtStab, &stabilizerRate)
 LOG_ADD(LOG_FLOAT, x1, &Xlog.x1)
 LOG_ADD(LOG_FLOAT, x2, &Xlog.x2)
 LOG_ADD(LOG_FLOAT, x3, &Xlog.x3)
@@ -767,12 +1299,32 @@ LOG_ADD(LOG_FLOAT, x10, &Xlog.x10)
 LOG_ADD(LOG_FLOAT, x11, &Xlog.x11)
 LOG_ADD(LOG_FLOAT, x12, &Xlog.x12)
 
+LOG_ADD(LOG_FLOAT, d4x, &Xlog.d4x)
+LOG_ADD(LOG_FLOAT, d4y, &Xlog.d4y)
+LOG_ADD(LOG_FLOAT, d4z, &Xlog.d4z)
+
+LOG_ADD(LOG_FLOAT, dpsi, &Xlog.dpsi)
+LOG_ADD(LOG_FLOAT, d2psi, &Xlog.d2psi)
+
+
+
 LOG_ADD(LOG_FLOAT, phi, &Xlog.phi)
 LOG_ADD(LOG_FLOAT, theta, &Xlog.theta)
 
 LOG_ADD(LOG_FLOAT, psi, &Xlog.psi)
 
-LOG_ADD(LOG_FLOAT, f, &Xlog.f)
+LOG_ADD(LOG_FLOAT, dphi, &Xlog.dphi)
+LOG_ADD(LOG_FLOAT, dtheta, &Xlog.dtheta)
+
+LOG_ADD(LOG_FLOAT, dpsi, &Xlog.dpsi)
+
+LOG_ADD(LOG_FLOAT, w1, &Xlog.w1)
+LOG_ADD(LOG_FLOAT, w2, &Xlog.w2)
+
+LOG_ADD(LOG_FLOAT, w3, &Xlog.w3)
+LOG_ADD(LOG_FLOAT,f,&Xlog.f)
+LOG_ADD(LOG_FLOAT,t,&Xlog.currenttime)
+LOG_ADD(LOG_INT16,starte,&Xlog.start)
 
 
 

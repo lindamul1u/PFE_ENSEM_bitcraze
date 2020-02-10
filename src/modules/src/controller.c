@@ -64,12 +64,17 @@ bool controllerTest(void) {
   return controllerFunctions[currentController].test();
 }
 
-void controller(control_t *control, setpoint_t *setpoint,commande_t *commande, X_t *reff, X_t *X, const sensorData_t *sensors, const state_t *state, const uint32_t tick){
-	if(currentController==  ControllerTypeENSEM){
-		controllerFunctions[currentController].update2(commande,reff,X,tick);
+void controller(ControllerType controller,control_t *control, setpoint_t *setpoint,commande_t *commande, X_t *reff, X_t *X, const sensorData_t *sensors, const state_t *state, const uint32_t tick){
+	if(controller==  ControllerTypeENSEM){
+
+			double t=usecTimestamp() / 1e6;
+			controllerFunctions[controller].update2(commande,reff,X,tick);
+			commande->currenttime=t;
+			commande->start=1;
+
 	}
 	else{
-		controllerFunctions[currentController].update(control, setpoint, sensors, state, tick);
+		controllerFunctions[controller].update(control, setpoint, sensors, state, tick);
 
 	}
 }

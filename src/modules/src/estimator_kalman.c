@@ -178,7 +178,7 @@ static SemaphoreHandle_t dataMutex;
  * Constants used in the estimator
  */
 
-#define CRAZYFLIE_WEIGHT_grams (27.0f)
+#define CRAZYFLIE_WEIGHT_grams (32.0f)
 
 //thrust is thrust mapped for 65536 <==> 60 GRAMS!
 #define CONTROL_TO_ACC (GRAVITY_MAGNITUDE*60.0f/CRAZYFLIE_WEIGHT_grams/65536.0f)
@@ -273,16 +273,17 @@ static bool updateQueuedMeasurments(const Axis3f *gyro, const uint32_t tick);
 
 // Called one time during system startup
 void estimatorKalmanTaskInit() {
+	  tdoaDataQueue = xQueueCreate(UWB_QUEUE_LENGTH, sizeof(tdoaMeasurement_t));
+/*
   distDataQueue = xQueueCreate(DIST_QUEUE_LENGTH, sizeof(distanceMeasurement_t));
   posDataQueue = xQueueCreate(POS_QUEUE_LENGTH, sizeof(positionMeasurement_t));
   poseDataQueue = xQueueCreate(POSE_QUEUE_LENGTH, sizeof(poseMeasurement_t));
-  tdoaDataQueue = xQueueCreate(UWB_QUEUE_LENGTH, sizeof(tdoaMeasurement_t));
   flowDataQueue = xQueueCreate(FLOW_QUEUE_LENGTH, sizeof(flowMeasurement_t));
   tofDataQueue = xQueueCreate(TOF_QUEUE_LENGTH, sizeof(tofMeasurement_t));
   heightDataQueue = xQueueCreate(HEIGHT_QUEUE_LENGTH, sizeof(heightMeasurement_t));
   yawErrorDataQueue = xQueueCreate(YAW_ERROR_QUEUE_LENGTH, sizeof(yawErrorMeasurement_t));
   sweepAnglesDataQueue = xQueueCreate(SWEEP_ANGLES_QUEUE_LENGTH, sizeof(sweepAngleMeasurement_t));
-
+*/
   vSemaphoreCreateBinary(runTaskSemaphore);
 
   dataMutex = xSemaphoreCreateMutex();
@@ -507,7 +508,7 @@ static bool updateQueuedMeasurments(const Axis3f *gyro, const uint32_t tick) {
    * Sensor measurements can come in sporadically and faster than the stabilizer loop frequency,
    * we therefore consume all measurements since the last loop, rather than accumulating
    */
-
+/*
   tofMeasurement_t tof;
   while (stateEstimatorHasTOFPacket(&tof))
   {
@@ -550,12 +551,6 @@ static bool updateQueuedMeasurments(const Axis3f *gyro, const uint32_t tick) {
     doneUpdate = true;
   }
 
-  tdoaMeasurement_t tdoa;
-  while (stateEstimatorHasTDOAPacket(&tdoa))
-  {
-    kalmanCoreUpdateWithTDOA(&coreData, &tdoa);
-    doneUpdate = true;
-  }
 
   flowMeasurement_t flow;
   while (stateEstimatorHasFlowPacket(&flow))
@@ -571,18 +566,22 @@ static bool updateQueuedMeasurments(const Axis3f *gyro, const uint32_t tick) {
     doneUpdate = true;
   }
 
+  */
+
+  tdoaMeasurement_t tdoa;
+  while (stateEstimatorHasTDOAPacket(&tdoa))
+  {
+    kalmanCoreUpdateWithTDOA(&coreData, &tdoa);
+    doneUpdate = true;
+  }
+
   return doneUpdate;
 }
 
 // Called when this estimator is activated
 void estimatorKalmanInit(void) {
-  xQueueReset(distDataQueue);
-  xQueueReset(posDataQueue);
-  xQueueReset(poseDataQueue);
-  xQueueReset(tdoaDataQueue);
-  xQueueReset(flowDataQueue);
-  xQueueReset(tofDataQueue);
 
+  xQueueReset(tdoaDataQueue);
   xSemaphoreTake(dataMutex, portMAX_DELAY);
   accAccumulator = (Axis3f){.axis={0}};
   gyroAccumulator = (Axis3f){.axis={0}};

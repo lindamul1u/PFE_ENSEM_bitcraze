@@ -121,7 +121,11 @@ struct traj_eval
 	struct vec vel;
 	struct vec acc;
 	struct vec omega;
+	struct vec jerk;
+	struct vec d4p;
 	float yaw;
+	float dyaw;
+	float d2yaw;
 };
 
 // a special value of traj_eval that indicates an invalid result.

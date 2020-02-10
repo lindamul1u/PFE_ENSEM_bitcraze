@@ -42,15 +42,25 @@ We added the following:
 #include "math3d.h"
 
 #include "controller_ensem.h"
+/*
+   kp= 10.0000   ;
+  kdp=  25.0864 ;
+  kd2p= 26.4663 ;
+  kd3p= 12.3666;
 
- static double kp= 10.0000   ;
-static double kdp=  25.0864 ;
-static double kd2p= 26.4663 ;
-static double kd3p= 12.3666;
+
+  kpsi=10.0000 ;
+  kdpsi=  10.9545;*/
+
+static double kp=  16.0 ;
+static double kdp=  32.0  ;
+static double kd2p=  24.0  ;
+static double kd3p= 8.0  ;
 
 
-static double kpsi=10.0000 ;
-static double kdpsi=  10.9545;
+static double kpsi= 4.00;
+static double kdpsi=4.0 ;
+
 
 
 void controllerENSEMInit(void)

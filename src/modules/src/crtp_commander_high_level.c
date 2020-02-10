@@ -92,7 +92,7 @@ static struct vec pos; // last known setpoint (position [m])
 static float yaw; // last known setpoint yaw (yaw [rad])
 static struct piecewise_traj trajectory;
 static struct piecewise_traj_compressed  compressed_trajectory;
-
+static int TypeTraject;
 // makes sure that we don't evaluate the trajectory while it is being changed
 static xSemaphoreHandle lockTraj;
 
@@ -233,10 +233,10 @@ void crtpCommanderHighLevelGetSetpoint(setpoint_t* setpoint, const state_t *stat
     setpoint->velocity.x = ev.vel.x;
     setpoint->velocity.y = ev.vel.y;
     setpoint->velocity.z = ev.vel.z;
-    setpoint->attitude.yaw = degrees(ev.yaw);
-    setpoint->attitudeRate.roll = degrees(ev.omega.x);
-    setpoint->attitudeRate.pitch = degrees(ev.omega.y);
-    setpoint->attitudeRate.yaw = degrees(ev.omega.z);
+    setpoint->attitude.yaw = (ev.yaw);
+    setpoint->attitudeRate.roll = (ev.omega.x);
+    setpoint->attitudeRate.pitch = (ev.omega.y);
+    setpoint->attitudeRate.yaw = (ev.omega.z);
     setpoint->mode.x = modeAbs;
     setpoint->mode.y = modeAbs;
     setpoint->mode.z = modeAbs;
@@ -247,6 +247,16 @@ void crtpCommanderHighLevelGetSetpoint(setpoint_t* setpoint, const state_t *stat
     setpoint->acceleration.x = ev.acc.x;
     setpoint->acceleration.y = ev.acc.y;
     setpoint->acceleration.z = ev.acc.z;
+    setpoint->jerk.x=ev.jerk.x;
+    setpoint->jerk.y=ev.jerk.y;
+    setpoint->jerk.z=ev.jerk.z;
+    setpoint->d4p.x=ev.d4p.x;
+    setpoint->d4p.y=ev.d4p.y;
+    setpoint->d4p.z=ev.d4p.z;
+    setpoint->psi=ev.yaw;
+    setpoint->dpsi=ev.dyaw;
+    setpoint->d2psi=ev.d2yaw;
+    setpoint->TypeTraj=TypeTraject;
 
     // store the last setpoint
     pos = ev.pos;
@@ -267,24 +277,31 @@ void crtpCommanderHighLevelTask(void * prm)
     {
       case COMMAND_SET_GROUP_MASK:
         ret = set_group_mask((const struct data_set_group_mask*)&p.data[1]);
+        TypeTraject=0;
         break;
       case COMMAND_TAKEOFF:
         ret = takeoff((const struct data_takeoff*)&p.data[1]);
+        TypeTraject=1;
         break;
       case COMMAND_LAND:
         ret = land((const struct data_land*)&p.data[1]);
+        TypeTraject=2;
         break;
       case COMMAND_STOP:
         ret = stop((const struct data_stop*)&p.data[1]);
+        TypeTraject=3;
         break;
       case COMMAND_GO_TO:
         ret = go_to((const struct data_go_to*)&p.data[1]);
+        TypeTraject=4;
         break;
       case COMMAND_START_TRAJECTORY:
         ret = start_trajectory((const struct data_start_trajectory*)&p.data[1]);
+        TypeTraject=5;
         break;
       case COMMAND_DEFINE_TRAJECTORY:
         ret = define_trajectory((const struct data_define_trajectory*)&p.data[1]);
+        TypeTraject=6;
         break;
       default:
         ret = ENOEXEC;

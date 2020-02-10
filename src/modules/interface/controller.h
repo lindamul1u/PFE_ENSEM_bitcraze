@@ -39,7 +39,7 @@ typedef enum {
 
 void controllerInit(ControllerType controller);
 bool controllerTest(void);
-void controller(control_t *control, setpoint_t *setpoint,commande_t *commande, X_t *reff, X_t *X, const sensorData_t *sensors, const state_t *state, const uint32_t tick);
+void controller(ControllerType controller,control_t *control, setpoint_t *setpoint,commande_t *commande, X_t *reff, X_t *X, const sensorData_t *sensors, const state_t *state, const uint32_t tick);
 ControllerType getControllerType(void);
 const char* controllerGetName();
 

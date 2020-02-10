@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include "stabilizer_types.h"
 
-void trajset(X_t *Reff,ctr_traj_t *time1 );
+void trajset(X_t *Reff,state_t *state0,X_t *X,double toffset);
 
 
 #endif /* __GENERATEURTRAJ_H__ */

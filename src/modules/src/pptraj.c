@@ -173,8 +173,11 @@ static void poly7_nojerk(float poly[PP_SIZE], float T,
 		poly[7] = (2*(10*x0 - 10*xf + 5*T*dx0 + 5*T*dxf + T2*ddx0 - T2*ddxf))/T7;
 		for (int i = 8; i < PP_SIZE; ++i) {
 			poly[i] = 0;
+
 		}
+
 	}
+
 }
 
 
@@ -290,14 +293,17 @@ struct traj_eval poly4d_eval(struct poly4d const *p, float t)
 	polyder4d(deriv);
 	out.vel = polyval_xyz(deriv, t);
 	float dyaw = polyval_yaw(deriv, t);
-
+	out.dyaw=dyaw;
 	// 2nd derivative
 	polyder4d(deriv);
 	out.acc = polyval_xyz(deriv, t);
-
+	out.d2yaw=polyval_yaw(deriv, t);
 	// 3rd derivative
 	polyder4d(deriv);
 	struct vec jerk = polyval_xyz(deriv, t);
+	out.jerk=jerk;
+	polyder4d(deriv);
+	out.d4p = polyval_xyz(deriv, t);
 
 	struct vec thrust = vadd(out.acc, mkvec(0, 0, GRAV));
 	// float thrust_mag = mass * vmag(thrust);
@@ -326,7 +332,7 @@ struct traj_eval piecewise_eval(
   struct piecewise_traj const *traj, float t)
 {
 	int cursor = 0;
-	t = t - traj->t_begin;
+	t = t - traj->t_begin;//dt
 	while (cursor < traj->n_pieces) {
 		struct poly4d const *piece = &(traj->pieces[cursor]);
 		if (t <= piece->duration * traj->timescale) {
